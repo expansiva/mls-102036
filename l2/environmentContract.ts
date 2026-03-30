@@ -12,7 +12,8 @@ export interface CollabMessagesEnvironment {
     setIntegrationsOpenClaw?(integrations: IOpenClawIntegration[]): Promise<void>;
 
     config?: {
-        getMenuMode?(): 'default' | 'custom'
+        getMenuMode?(): 'default' | 'custom',
+        generateSvgAvatarEnabled?(): boolean
     }
 
     tasks?: {
@@ -64,7 +65,8 @@ type TaskRuntime = {
 };
 
 type ConfigRuntime = {
-    getMenuMode: () => 'default' | 'custom'
+    getMenuMode: () => 'default' | 'custom';
+    generateSvgAvatarEnabled: () => boolean
 };
 
 /**
@@ -94,6 +96,7 @@ const defaultTasks: TaskRuntime = {
 
 const defaultConfig: ConfigRuntime = {
     getMenuMode: () => 'default',
+    generateSvgAvatarEnabled: () => false
 };
 
 /**
@@ -198,6 +201,8 @@ export const environment = {
     },
     config: {
         getMenuMode: () =>
-            getEnvConfig().getMenuMode()
+            getEnvConfig().getMenuMode(),
+        generateSvgAvatarEnabled: () =>
+            getEnvConfig().generateSvgAvatarEnabled()
     }
 };
