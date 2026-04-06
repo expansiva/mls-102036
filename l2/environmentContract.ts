@@ -28,6 +28,7 @@ export interface CollabMessagesEnvironment {
 
     notifications?: {
         getFCMTokenForBackend?(): Promise<string | null>;
+        getNotifySoundUrl?(): Promise<string | null>;
         sendRequestMissed?(): Promise<void>;
         sendACK?(id: string): Promise<void>;
     };
@@ -44,6 +45,7 @@ export interface CollabMessagesEnvironment {
  */
 type NotificationsRuntime = {
     getFCMTokenForBackend: () => Promise<string | null>;
+    getNotifySoundUrl: () => Promise<string | null>;
     sendRequestMissed: () => Promise<void>;
     sendACK: (id: string) => Promise<void>;
 };
@@ -74,6 +76,7 @@ type ConfigRuntime = {
  */
 const defaultNotifications: NotificationsRuntime = {
     getFCMTokenForBackend: () => Promise.resolve(null),
+    getNotifySoundUrl: () => Promise.resolve(null),
     sendRequestMissed: () => Promise.resolve(),
     sendACK: () => Promise.resolve(),
 };
@@ -166,6 +169,9 @@ export const environment = {
     notifications: {
         getFCMTokenForBackend: () =>
             getEnvNotifications().getFCMTokenForBackend(),
+
+        getNotifySoundUrl: () =>
+            getEnvNotifications().getNotifySoundUrl(),
 
         sendRequestMissed: () =>
             getEnvNotifications().sendRequestMissed(),
