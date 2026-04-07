@@ -956,3 +956,107 @@ export interface ToolsBeforeSendMessage {
   toolName: string;
   args: Record<string, any>;
 }
+
+// OPEN CLAW
+
+export interface RequestAddOrUpdateOpenClawConnector extends RequestBase {
+  action: "addOrUpdateOpenClawConnector";
+  userId: string;
+  connectorId: string;
+  name: string;
+  baseUrl: string;
+  gatewayToken: string;
+  inboundToken: string;
+  enabled: boolean;
+  defaultTimeoutMs?: number;
+  defaultOutputMode?: OpenClawOutputMode;
+}
+
+export interface ResponseAddOrUpdateOpenClawConnector extends ResponseBase {
+  connector: OpenClawConnector;
+}
+
+export interface RequestRemoveOpenClawConnector extends RequestBase {
+  action: "removeOpenClawConnector";
+  userId: string;
+  connectorId: string;
+}
+
+export interface ResponseRemoveOpenClawConnector extends ResponseBase {
+  connectorId: string;
+}
+
+export interface RequestListOpenClawConnectors extends RequestBase {
+  action: "listOpenClawConnectors";
+  userId: string;
+}
+
+export interface ResponseListOpenClawConnectors extends ResponseBase {
+  connectors: OpenClawConnector[];
+}
+
+export type OpenClawOutputMode = "final_only" | "status_and_final";
+export type OpenClawSessionMode = "thread" | "thread_user";
+export type OpenClawHandoffThreadRole = "handoff" | "collaboration";
+
+export interface OpenClawConnector {
+  connectorId: string;
+  name: string;
+  baseUrl: string;
+  gatewayToken: string;
+  inboundToken: string;
+  enabled: boolean;
+  defaultTimeoutMs: number;
+  defaultOutputMode: OpenClawOutputMode;
+}
+
+export interface RequestAddOrUpdateThreadOpenClawAgent extends RequestBase {
+  action: "addOrUpdateThreadOpenClawAgent";
+  userId: string;
+  threadId: string;
+  alias: string;
+  connectorId: string;
+  agentId: string;
+  collabUserId: string;
+  enabled: boolean;
+  sessionMode?: OpenClawSessionMode;
+  handoffThreadRole?: OpenClawHandoffThreadRole;
+  defaultForThread?: boolean;
+}
+
+export interface ResponseAddOrUpdateThreadOpenClawAgent extends ResponseBase {
+  thread: Thread;
+}
+
+export interface RequestRemoveThreadOpenClawAgent extends RequestBase {
+  action: "removeThreadOpenClawAgent";
+  userId: string;
+  threadId: string;
+  alias: string;
+}
+
+export interface ResponseRemoveThreadOpenClawAgent extends ResponseBase {
+  thread: Thread;
+}
+
+export interface RequestListThreadOpenClawAgents extends RequestBase {
+  action: "listThreadOpenClawAgents";
+  userId: string;
+  threadId: string;
+}
+
+export interface ResponseListThreadOpenClawAgents extends ResponseBase {
+  threadId: string;
+  agents: OpenClawAgentBinding[];
+}
+
+export interface OpenClawAgentBinding {
+  alias: string;
+  connectorId: string;
+  agentId: string;
+  collabUserId: string;
+  enabled: boolean;
+  sessionMode?: OpenClawSessionMode;
+  handoffThreadRole?: OpenClawHandoffThreadRole;
+  defaultForThread?: boolean;
+}
