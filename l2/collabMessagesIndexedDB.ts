@@ -144,25 +144,15 @@ export async function updateMessage(message: msg.Message): Promise<void> {
 
         const messageId = `${message.threadId}/${message.createAt}`;
 
-        const getRequest = store.get(messageId);
-
-        getRequest.onsuccess = () => {
-            if (!getRequest.result) {
-                reject(`Message not found (ID: ${messageId}).`);
-                return;
-            }
-
-            const updatedMessage = {
-                ...getRequest.result,
-                ...message,
-                messageId,
-            };
-
-            const updateRequest = store.put(updatedMessage);
-            updateRequest.onsuccess = () => resolve();
-            updateRequest.onerror = () => reject("Failed to update message.");
+        const updatedMessage = {
+            ...message,
+            messageId,
         };
-        getRequest.onerror = () => reject("Failed to fetch message for update.");
+
+        const request = store.put(updatedMessage);
+
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject("Failed to upsert message.");
         tx.onabort = () => reject("Transaction was aborted.");
     });
 }
