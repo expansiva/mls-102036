@@ -453,6 +453,12 @@ export interface User {
   name: string;
   status: "active" | "blocked" | "deleted";
   avatar_url?: string;
+  kind?: string,
+  metadata?: {
+    agentId: string,
+    connectorId: string,
+    source: string
+  }
   threads: string[];
   notifications?: UserNotifications[];
 }
@@ -1117,7 +1123,6 @@ export interface RequestCreateOpenClawAgent extends RequestBase {
   avatar?: string;
   soulMd?: string;
   identityMd?: string;
-  identifyMd?: string;
 }
 
 export interface ResponseCreateOpenClawAgent extends ResponseBase {
