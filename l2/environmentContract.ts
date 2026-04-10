@@ -3,7 +3,7 @@
 import { IAgentMeta, IOpenClawIntegration, Thread, ToolsBeforeSendMessage, ExecutionContext, TaskData, Message } from '/_102036_/l2/shared/interfaces.js'
 
 /**
- * CONTRATO (entrada externa)
+ * CONTRACT
  */
 export interface CollabMessagesEnvironment {
     getAgents?(): Promise<IAgentMeta[]>;
@@ -41,7 +41,7 @@ export interface CollabMessagesEnvironment {
 }
 
 /**
- * RUNTIME TYPES (não opcionais)
+ * RUNTIME TYPES 
  */
 type NotificationsRuntime = {
     getFCMTokenForBackend: () => Promise<string | null>;
@@ -72,7 +72,7 @@ type ConfigRuntime = {
 };
 
 /**
- * DEFAULTS (fallback seguro)
+ * DEFAULTS (fallback)
  */
 const defaultNotifications: NotificationsRuntime = {
     getFCMTokenForBackend: () => Promise.resolve(null),
@@ -116,7 +116,7 @@ function getEnv(): CollabMessagesEnvironment {
 }
 
 /**
- * NORMALIZADORES (garantem tipagem forte)
+ * NORMALIZERS
  */
 function getEnvNotifications(): NotificationsRuntime {
     return {
@@ -154,7 +154,7 @@ function getEnvConfig(): ConfigRuntime {
 }
 
 /**
- * FACADE FINAL (API SEGURA)
+ * FACADE FINAL
  */
 export const environment = {
     getAgents: () =>
