@@ -1,4 +1,4 @@
-/// <mls fileReference="_102036_/l2/collabMessagesIndexedDB.defs.ts" enhancement="_blank"/> 
+/// <mls fileReference="_102036_/l2/collabMessagesIndexedDB.defs.ts" enhancement="_blank"/>  
 
 export const asis: mls.defs.AsIs =
 {
