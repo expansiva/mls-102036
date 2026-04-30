@@ -1,6 +1,5 @@
-/// <mls fileReference="_102036_/l2/designSystem.ts" enhancement="_102027_/l2/enhancementLit" />
+/// <mls fileReference="_102036_/l2/designSystem.ts" enhancement="_blank" />
 
-import { IDesignSystemTokens } from '/_102027_/l2/designSystemBase.js';
 
 export const tokens: IDesignSystemTokens[] = [
     {
@@ -316,3 +315,24 @@ export const tokens: IDesignSystemTokens[] = [
         },
     }
 ]
+
+
+export interface IDesignSystemTokens {
+    description: string,
+    themeName: string,
+    color: Record<string, string>,
+    global: Record<string, string>,
+    typography: Record<string, string>,
+}
+
+export interface IDesignSystem {
+    tokens: IDesignSystemTokens[]
+}
+
+interface IKeyValueToken {
+    [x: string]: string
+}
+
+export interface IDarkLight {
+    [theme: string]: IKeyValueToken
+}
