@@ -22,7 +22,8 @@
         },
         "lib": [
             "dom",
-            "ES2022"
+            "ES2022", 
+            "DOM.Iterable"
         ]
     },
     "include": [
