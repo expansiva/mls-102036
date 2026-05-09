@@ -94,7 +94,15 @@ const defaultAgents: AgentsRuntime = {
 };
 
 const defaultTasks: TaskRuntime = {
-    openTaskDetails: () => Promise.resolve({ openLocal: false, element: undefined }),
+    openTaskDetails: async (_messageId: string, _taskId: string, task: TaskData, message: Message) => {
+        const element = document.createElement('collab-messages-task-info-102025') as HTMLElement & {
+            task?: TaskData,
+            message?: Message
+        };
+        element.task = task;
+        element.message = message;
+        return { openLocal: true, element };
+    },
 };
 
 const defaultConfig: ConfigRuntime = {

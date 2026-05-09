@@ -33,6 +33,8 @@ export interface RequestAddMessage extends RequestBase {
 
 export interface ResponseAddMessage extends ResponseBase {
   message: Message;
+  task?: TaskData;
+  taskRoomThread?: Thread;
   botOutputs?: BotOutput[];
   integrationOutputs?: IntegrationOutput[];
 }
@@ -238,6 +240,18 @@ export interface RequestUpdateTaskTitle extends RequestBase {
 
 export interface ResponseUpdateTaskTitle extends ResponseBase {
   task: TaskData;
+}
+
+export interface RequestEnsureTaskRoom extends RequestBase {
+  action: "ensureTaskRoom";
+  userId: string;
+  taskId: string;
+  parentThreadId?: string;
+}
+
+export interface ResponseEnsureTaskRoom extends ResponseBase {
+  task: TaskData;
+  thread: Thread;
 }
 
 export interface RequestGetMessagesAfter extends RequestBase {
@@ -507,6 +521,12 @@ export interface Thread {
   bots?: ThreadBot[];
   integrations?: ThreadIntegration[];
   openClawAgents?: OpenClawAgentBinding[]
+  kind?: 'thread' | 'task-room';
+  taskRoom?: {
+    taskId: string;
+    parentThreadId: string;
+    workflowType: WorkflowType;
+  };
   archivedAt?: string; // compact UTC format `yyyyMMddHHmmss` when this thread was archived
   archivedBy?: string;
   deletedAt?: string; // compact UTC format `yyyyMMddHHmmss` when this thread was deleted
@@ -600,6 +620,8 @@ export interface Message {
   type?: 'text' | 'image' | 'video' | 'audio' | 'document' | 'location' | 'contact'; // default is `text`
   pin?: boolean;
   taskId?: string;
+  stepId?: number;
+  taskRoomRole?: 'conversation' | 'system' | 'agent' | 'workflow';
 
   taskTitle?: string; // title of the task, if this message is related to a task
   taskStatus?: TaskStatus; // status of the task, if this message is related to a task
@@ -675,9 +697,18 @@ export interface TaskData {
   attachmentsUrl?: string[]; // urls of attachments related to this task
   messageid_created?: string; // thread id and message id from origin this task. ex: 20250521144240.1000/20250706203939.1000
   messageid_refs?: string[]; // messages id referenced in this task
+  taskRoom?: {
+    enabled: boolean;
+    threadId?: string;
+    workflowType?: WorkflowType;
+    parentThreadId?: string;
+    memoryRef?: string;
+    status?: 'active' | 'archived' | 'deleted';
+  };
 }
 
 export type TaskStatus = 'todo' | 'in progress' | 'paused' | 'done' | 'failed';
+export type WorkflowType = 'staticWorkflow' | 'dynamicWorkflow';
 
 export interface TaskDataToSave extends Omit<TaskData, 'iaCompressed'> {
   iaCompressed?: string;
@@ -739,6 +770,17 @@ export interface AIStep {
 }
 
 export type AIPayload = AIAgentStep | AIToolStep | AIClarificationStep | AIResultStep | AIFlexibleResultStep;
+
+export interface AIWorkflowStep {
+  type: WorkflowType;
+  stepId: number;
+  status: AIStepStatus;
+  stepTitle?: string;
+  progress?: AIStepProgress;
+  interaction: AIInteraction | null | undefined;
+  nextSteps: AIPayload[] | null;
+  workflowName?: string;
+}
 
 export interface AIAgentStep extends AIStep {
   type: 'agent';
