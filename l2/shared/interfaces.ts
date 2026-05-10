@@ -95,7 +95,8 @@ export interface RequestUpdateUserDetails extends RequestBase {
   name?: string;
   status?: "active" | "blocked" | "deleted";
   avatar_url?: string;
-  deviceId: string; // device id for push notifications
+  md?: string;
+  deviceId?: string; // device id for push notifications
   notificationToken?: string; // FCM token for push notifications
 }
 
@@ -467,18 +468,28 @@ export interface User {
   name: string;
   status: "active" | "blocked" | "deleted";
   avatar_url?: string;
-  kind?: string,
-  metadata?: {
-    agentId: string,
-    connectorId: string,
-    source: string
-  }
+  md?: string;
+  kind?: UserKind;
+  metadata?: UserMetadata;
   threads: string[];
   notifications?: UserNotifications[];
 }
 export interface UserNotifications {
   deviceId: string;
   notificationToken: string; // FCM token for push notifications
+}
+
+export type UserKind = "human" | "synthetic_agent" | "pma";
+
+export interface UserMetadata {
+  source?: "collab" | "openclaw" | "external";
+  agentType?: "pma" | "agent" | "external_agent";
+  definitionRef?: string;
+  definitionVersion?: string;
+  modelType?: string;
+  connectorId?: string;
+  agentId?: string;
+  [key: string]: any;
 }
 
 
