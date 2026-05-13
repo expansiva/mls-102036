@@ -145,6 +145,7 @@ export interface RequestUpdateThread extends RequestBase {
   avatar_url?: string;
   defaultTopics?: string[];
   welcomeMessage?: string;
+  notification?: ThreadNotification;
 }
 
 export interface ResponseUpdateThread extends ResponseBase {
@@ -253,6 +254,33 @@ export interface RequestEnsureTaskRoom extends RequestBase {
 export interface ResponseEnsureTaskRoom extends ResponseBase {
   task: TaskData;
   thread: Thread;
+}
+
+export interface TagVocabularyEntry {
+  tag: string;
+  label?: { pt: string; en: string };
+  color: 'bug' | 'feature' | 'business' | 'process' | 'neutral';
+}
+
+export interface RequestListTasks extends RequestBase {
+  action: "listTasks";
+  view: 'active' | 'closed';
+  cursor?: string;
+  pageSize?: number;
+}
+
+export interface ResponseListTasks extends ResponseBase {
+  tasks: TaskData[];
+  nextCursor?: string;
+}
+
+export interface RequestGetOrgPreferences extends RequestBase {
+  action: "getOrgPreferences";
+  organizationId: string;
+}
+
+export interface ResponseGetOrgPreferences extends ResponseBase {
+  tagVocabulary: TagVocabularyEntry[];
 }
 
 export interface RequestGetMessagesAfter extends RequestBase {
@@ -511,11 +539,13 @@ export type UserAuth = "admin" | "moderator" | "read" | "write" | "none";
 export interface ThreadUsers {
   userId: string;
   auth: UserAuth;
+  notification?: ThreadNotification;
 }
 
 export type ThreadGroup = "CRM" | "TASK" | "DOCS" | "CONNECT" | "APPS";
 export type ThreadVisibility = "public" | "private" | "company" | "team"; // use private for only users in this thread
 export type ThreadStatus = "active" | "archived" | "deleting" | "deleted";
+export type ThreadNotification = "all" | "mentions" | "never";
 
 export interface Thread {
   threadId: string; // compact UTC format `yyyyMMddHHmmss.nnn` unique sorted index, nnn is a sequence number
@@ -693,7 +723,8 @@ export interface TaskData {
   title: string;
   owner: string; // who created this task, userId
   team: 'unassigned' | string | null; // team assigned to this task
-  assigness?: string[]; // userIds assigned to this task
+  assignees?: string[]; // userIds assigned to this task
+  dueDate?: string; // ISO date YYYY-MM-DD
   status: TaskStatus;
   last_updated: 0 | number; // Date.now()
   last_update_log: string | null; // description of last update
@@ -715,6 +746,8 @@ export interface TaskData {
     parentThreadId?: string;
     memoryRef?: string;
     status?: 'active' | 'archived' | 'deleted';
+    pmaId?: string;
+    pmaStatus?: 'active' | 'paused' | 'disabled';
   };
 }
 
