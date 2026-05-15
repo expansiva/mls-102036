@@ -724,7 +724,7 @@ export interface TaskData {
   owner: string; // who created this task, userId
   team: 'unassigned' | string | null; // team assigned to this task
   assignees?: string[]; // userIds assigned to this task
-  dueDate?: string; // ISO date YYYY-MM-DD
+  dueDate?: string; // ISO date YYYY-MM-DD, managed by /setDueDate
   status: TaskStatus;
   last_updated: 0 | number; // Date.now()
   last_update_log: string | null; // description of last update
@@ -747,7 +747,9 @@ export interface TaskData {
     memoryRef?: string;
     status?: 'active' | 'archived' | 'deleted';
     pmaId?: string;
-    pmaStatus?: 'active' | 'paused' | 'disabled';
+    pmaStatus?: "active" | "paused" | "disabled";
+    pmaConfigRef?: string;
+    lastDecisionLogRef?: string;
   };
 }
 
