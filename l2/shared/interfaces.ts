@@ -264,6 +264,7 @@ export interface TagVocabularyEntry {
 
 export interface RequestListTasks extends RequestBase {
   action: "listTasks";
+  userId: string;
   view: 'active' | 'closed';
   cursor?: string;
   pageSize?: number;
@@ -276,6 +277,7 @@ export interface ResponseListTasks extends ResponseBase {
 
 export interface RequestGetOrgPreferences extends RequestBase {
   action: "getOrgPreferences";
+  userId: string;
   organizationId: string;
 }
 
