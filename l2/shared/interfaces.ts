@@ -792,6 +792,7 @@ export interface IAMessageInputType {
 export type AIStepStatus =
   'waiting_human_input' | // for parallel steps waiting for human input
   'waiting_after_prompt' | // for parallel steps waiting for afterPrompt processing
+  'waiting_after_prompt_with_error' | // for parallel steps waiting for afterPrompt processing
   'pending' | // already created, waiting to be processed
   'in_progress' | // being processed in LLM
   'completed' | // completed successfully
