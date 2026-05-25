@@ -108,10 +108,15 @@ export interface RequestUpdateMessage extends RequestBase {
   threadId: string;
   messageId: string;
   reaction?: string; // emoji or text to add or update or remove from reactions, if the user already reacted with this reaction it will be removed, otherwise it will be added
+  messageAction?: "delete" | "moderate" | "createTask";
+  editContent?: string;
+  taskTitle?: string;
 }
 
 export interface ResponseUpdateMessage extends ResponseBase {
   message: Message;
+  task?: TaskData;
+  taskRoomThread?: Thread;
 }
 
 export interface RequestAddMessageAI extends RequestBase {
@@ -726,6 +731,10 @@ export interface Message {
   translations?: Record<string, string>;
   reactions?: Record<string, string[]>; // key is reaction (emoji or text), value is array of userIds who reacted
   attachments?: MessageAttachment[];
+  moderation?: MessageModeration;
+  edits?: MessageEditVersion[];
+  editedAt?: string;
+  editedBy?: string;
   type?: 'text' | 'image' | 'video' | 'audio' | 'document' | 'location' | 'contact'; // default is `text`
   pin?: boolean;
   taskId?: string;
@@ -760,6 +769,20 @@ export interface MessageAttachment {
   deletedBy?: string;
   deletedAt?: string;
   url?: string;
+}
+
+export type MessageModerationStatus = "deleted" | "moderated";
+
+export interface MessageModeration {
+  status: MessageModerationStatus;
+  by: string;
+  at: string;
+}
+
+export interface MessageEditVersion {
+  content: string;
+  editedBy: string;
+  editedAt: string;
 }
 
 export interface MessagePerformanceCache extends Message {
