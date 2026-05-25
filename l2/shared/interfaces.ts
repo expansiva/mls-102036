@@ -39,6 +39,69 @@ export interface ResponseAddMessage extends ResponseBase {
   integrationOutputs?: IntegrationOutput[];
 }
 
+export interface RequestCreateAttachmentUpload extends RequestBase {
+  action: "createAttachmentUpload";
+  userId: string;
+  threadId: string;
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+}
+
+export interface ResponseCreateAttachmentUpload extends ResponseBase {
+  attachmentId: string;
+  storageKey: string;
+  uploadUrl: string;
+  headers: Record<string, string>;
+  expiresAt: string;
+}
+
+export interface AttachmentUploadCompletion {
+  attachmentId: string;
+  storageKey: string;
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+}
+
+export interface RequestCompleteAttachmentUpload extends RequestBase {
+  action: "completeAttachmentUpload";
+  userId: string;
+  threadId: string;
+  content?: string;
+  replyTo?: string;
+  attachments: AttachmentUploadCompletion[];
+}
+
+export interface ResponseCompleteAttachmentUpload extends ResponseBase {
+  message: Message;
+}
+
+export interface RequestDeleteAttachment extends RequestBase {
+  action: "deleteAttachment";
+  userId: string;
+  threadId: string;
+  messageId: string;
+  attachmentId: string;
+}
+
+export interface ResponseDeleteAttachment extends ResponseBase {
+  message: Message;
+}
+
+export interface RequestGetAttachmentUrl extends RequestBase {
+  action: "getAttachmentUrl";
+  userId: string;
+  threadId: string;
+  messageId: string;
+  attachmentId: string;
+}
+
+export interface ResponseGetAttachmentUrl extends ResponseBase {
+  url: string;
+  expiresAt: string;
+}
+
 export interface RequestUpdateMessage extends RequestBase {
   action: "updateMessage";
   userId: string; // owner of the thread
@@ -337,10 +400,12 @@ export interface RequestRemoveUserInThread extends RequestBase {
   userId: string; // usersId from executor
   userIdOrName: string; // usersId for user to be removed
   threadId: string;
+  eventVisibility?: "all" | "admin";
 }
 
 export interface ResponseRemoveUserInThread extends ResponseBase {
   thread: Thread;
+  messages?: Message[];
 }
 
 export interface RequestGetThreadUpdate extends RequestBase {
@@ -660,6 +725,7 @@ export interface Message {
   externalPlatform?: string;
   translations?: Record<string, string>;
   reactions?: Record<string, string[]>; // key is reaction (emoji or text), value is array of userIds who reacted
+  attachments?: MessageAttachment[];
   type?: 'text' | 'image' | 'video' | 'audio' | 'document' | 'location' | 'contact'; // default is `text`
   pin?: boolean;
   taskId?: string;
@@ -676,6 +742,24 @@ export interface Message {
   visibility?: "admin"; // only for admin, example: user left the thread
   url?: string;
   replyTo?: string; // use createAt of the message being replied to, obs. orderAt is not used for replyTo, because it can be changed when message is edited
+}
+
+export type MessageAttachmentKind = 'image' | 'video' | 'audio' | 'document' | 'file';
+export type MessageAttachmentStatus = 'active' | 'deleted';
+
+export interface MessageAttachment {
+  attachmentId: string;
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+  kind: MessageAttachmentKind;
+  storageKey: string;
+  uploadedBy: string;
+  uploadedAt: string;
+  status: MessageAttachmentStatus;
+  deletedBy?: string;
+  deletedAt?: string;
+  url?: string;
 }
 
 export interface MessagePerformanceCache extends Message {
