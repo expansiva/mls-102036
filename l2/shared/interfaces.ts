@@ -886,10 +886,32 @@ export interface IACompressed {
 
 export interface AIInteraction {
   input: IAMessageInputType[];
+  tools?: LLMTool[];
+  toolChoice?: LLMToolChoice;
   cost: number; // cost in this interaction , with no deep cost
   trace: string[]; // optional trace of the steps
   payload: AIPayload[] | null; // Tree of steps or null for not processed
 }
+
+export interface LLMTool {
+  type: 'function';
+  function: {
+    name: string;
+    description?: string;
+    parameters?: Record<string, unknown>;
+  };
+}
+
+export type LLMToolChoice =
+  'auto' |
+  'none' |
+  'required' |
+  {
+    type: 'function';
+    function: {
+      name: string;
+    };
+  };
 
 export interface IAMessageInputType {
   type: 'system' | 'human' | 'ai';
@@ -1106,6 +1128,8 @@ export type AgentIntentPromptReady = {
   args: string;           // original args (for validation/deduplication)
   humanPrompt: string;    // prepared human prompt ready for execution
   systemPrompt?: string;  // optional updated system prompt for this step
+  tools?: LLMTool[];
+  toolChoice?: LLMToolChoice;
 };
 
 export type AgentIntentRemoveHook = {
