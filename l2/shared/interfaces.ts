@@ -897,6 +897,7 @@ export interface IAMessageInputType {
 }
 
 export type AIStepStatus =
+  'waiting_dependency' | // not ready yet
   'waiting_human_input' | // for parallel steps waiting for human input
   'waiting_after_prompt' | // for parallel steps waiting for afterPrompt processing
   'waiting_after_prompt_with_error' | // for parallel steps waiting for afterPrompt processing
@@ -912,12 +913,33 @@ export interface AIStepProgress {
   templateTitle: string; // ex: "preparing file {{completed}} of {{total}}, errors: {{failed}}"
 }
 
+export type AIStepPlanningExecutionMode =
+  'sequential' |
+  'parallel_static' |
+  'parallel_dynamic' |
+  'manual_later';
+
+export interface AIStepPlanningDynamicSource {
+  sourcePlanId?: string;
+  selectorField?: string;
+  argsField?: string;
+}
+
+export interface AIStepPlanning {
+  planId: string;
+  dependsOn: string[];
+  executionMode: AIStepPlanningExecutionMode;
+  executionHost?: 'client' | 'server' | 'either';
+  dynamicSource?: AIStepPlanningDynamicSource;
+}
+
 export interface AIStep {
   type: AIPayload['type'];
   stepId: number; // unique id , from first interaction
   status: AIStepStatus;
   stepTitle?: string;
   progress?: AIStepProgress;
+  planning?: AIStepPlanning;
   // If null => interaction not prepared yet
   // If undefined => no LLM interaction needed for this step (e.g., tool call)
   // If defined => contains prompt/response used in this step
@@ -933,6 +955,7 @@ export interface AIWorkflowStep {
   status: AIStepStatus;
   stepTitle?: string;
   progress?: AIStepProgress;
+  planning?: AIStepPlanning;
   interaction: AIInteraction | null | undefined;
   nextSteps: AIPayload[] | null;
   workflowName?: string;
