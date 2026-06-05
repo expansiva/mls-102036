@@ -1031,6 +1031,7 @@ export type AgentIntentUpdateStatus = {
   parentStepId: number;
   stepId: number;
   status: AIStepStatus;
+  traceMsg?: string;
   cleaner?: 'input' | 'input_output'; // how to clean previous interactions in this step
 }
 
