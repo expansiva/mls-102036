@@ -2,6 +2,23 @@
 
 import { IAgentMeta, IOpenClawIntegration, Thread, ToolsBeforeSendMessage, ExecutionContext, TaskData, Message } from '/_102036_/l2/shared/interfaces.js'
 
+export interface CollabProgramMenuItem {
+    title: string;
+    icon: string;
+    url: string;
+    pageName: string;
+    target?: string;
+    children?: CollabProgramMenuItem[];
+}
+
+export interface CollabProgramMenu {
+    name: string;
+    icon: string;
+    project: number;
+    path: string;
+    menu: CollabProgramMenuItem[];
+}
+
 /**
  * CONTRACT
  */
@@ -18,6 +35,11 @@ export interface CollabMessagesEnvironment {
 
     tasks?: {
         openTaskDetails?(messageId: string, taskId: string, task: TaskData, message: Message): Promise<{ openLocal: boolean, element: HTMLElement | undefined }>
+    }
+
+    apps?: {
+        getProgramMenu?(): Promise<CollabProgramMenu[]>;
+        openProgram?(item: CollabProgramMenuItem & { project?: number; module?: string; path?: string }): Promise<void>;
     }
 
     agents?: {
@@ -66,6 +88,11 @@ type TaskRuntime = {
     openTaskDetails: (messageId: string, taskId: string, task: TaskData, message: Message) => Promise<{ openLocal: boolean, element: HTMLElement | undefined }>
 };
 
+type AppsRuntime = {
+    getProgramMenu: () => Promise<CollabProgramMenu[]>;
+    openProgram: (item: CollabProgramMenuItem & { project?: number; module?: string; path?: string }) => Promise<void>;
+};
+
 type ConfigRuntime = {
     getMenuMode: () => 'default' | 'custom';
     generateSvgAvatarEnabled: () => boolean
@@ -103,6 +130,11 @@ const defaultTasks: TaskRuntime = {
         element.message = message;
         return { openLocal: true, element };
     },
+};
+
+const defaultApps: AppsRuntime = {
+    getProgramMenu: () => Promise.resolve([]),
+    openProgram: () => Promise.resolve(),
 };
 
 const defaultConfig: ConfigRuntime = {
@@ -151,6 +183,13 @@ function getEnvTasks(): TaskRuntime {
     return {
         ...defaultTasks,
         ...getEnv().tasks,
+    };
+}
+
+function getEnvApps(): AppsRuntime {
+    return {
+        ...defaultApps,
+        ...getEnv().apps,
     };
 }
 
@@ -212,6 +251,12 @@ export const environment = {
 
     tasks: {
         openTaskDetails: (messageId: string, taskId: string, task: TaskData, message: Message) => getEnvTasks().openTaskDetails(messageId, taskId, task, message)
+    },
+    apps: {
+        getProgramMenu: () =>
+            getEnvApps().getProgramMenu(),
+        openProgram: (item: CollabProgramMenuItem & { project?: number; module?: string; path?: string }) =>
+            getEnvApps().openProgram(item),
     },
     config: {
         getMenuMode: () =>
