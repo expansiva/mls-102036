@@ -1059,6 +1059,7 @@ export type AgentIntentAddMessageAI = {
   stepTitle?: string;
   request: Omit<RequestAddMessageAI, 'userId'>;
   executionMode?: ExecutionMode;
+  skipRootLLM?: boolean;
 }
 
 export type ExecutionMode = {
