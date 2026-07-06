@@ -30,7 +30,10 @@ export interface CollabMessagesEnvironment {
 
     config?: {
         getMenuMode?(): 'default' | 'custom',
-        generateSvgAvatarEnabled?(): boolean
+        generateSvgAvatarEnabled?(): boolean,
+        getApiUrl?(): string,
+        getApiCredentials?(): RequestCredentials,
+        getDefaultUserName?(): string
     }
 
     tasks?: {
@@ -95,7 +98,10 @@ type AppsRuntime = {
 
 type ConfigRuntime = {
     getMenuMode: () => 'default' | 'custom';
-    generateSvgAvatarEnabled: () => boolean
+    generateSvgAvatarEnabled: () => boolean;
+    getApiUrl: () => string;
+    getApiCredentials: () => RequestCredentials;
+    getDefaultUserName: () => string;
 };
 
 /**
@@ -139,7 +145,10 @@ const defaultApps: AppsRuntime = {
 
 const defaultConfig: ConfigRuntime = {
     getMenuMode: () => 'default',
-    generateSvgAvatarEnabled: () => false
+    generateSvgAvatarEnabled: () => false,
+    getApiUrl: () => 'https://on.collab.codes/exec',
+    getApiCredentials: () => 'include',
+    getDefaultUserName: () => 'User',
 };
 
 /**
@@ -262,6 +271,12 @@ export const environment = {
         getMenuMode: () =>
             getEnvConfig().getMenuMode(),
         generateSvgAvatarEnabled: () =>
-            getEnvConfig().generateSvgAvatarEnabled()
+            getEnvConfig().generateSvgAvatarEnabled(),
+        getApiUrl: () =>
+            getEnvConfig().getApiUrl(),
+        getApiCredentials: () =>
+            getEnvConfig().getApiCredentials(),
+        getDefaultUserName: () =>
+            getEnvConfig().getDefaultUserName()
     }
 };
