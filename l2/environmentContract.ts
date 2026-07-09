@@ -146,7 +146,11 @@ const defaultApps: AppsRuntime = {
 const defaultConfig: ConfigRuntime = {
     getMenuMode: () => 'default',
     generateSvgAvatarEnabled: () => false,
-    getApiUrl: () => 'https://on.collab.codes/exec',
+    // collab-messages is now called DIRECTLY (no cbe proxy). The cauth + loginMsg
+    // cookies live on .collab.codes, so credentials:'include' forwards them to
+    // msg.collab.codes cross-subdomain; collab-messages validates the JWT and
+    // binds/compares the identity. (Previously: 'https://on.collab.codes/exec'.)
+    getApiUrl: () => 'https://msg.collab.codes/msg',
     getApiCredentials: () => 'include',
     getDefaultUserName: () => 'User',
 };
