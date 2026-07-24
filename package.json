@@ -1,0 +1,11 @@
+{
+  "name": "102036",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "buildCI": "node ../scripts/buildCI/buildCI.mjs 102036"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {}
+}
