@@ -165,7 +165,7 @@ export interface RequestUpdateUserDetails extends RequestBase {
   avatar_url?: string;
   md?: string;
   deviceId?: string; // device id for push notifications
-  notificationToken?: string; // FCM token for push notifications
+  subscription?: PushSubscriptionData;
 }
 
 export interface ResponseUpdateUserDetails extends ResponseBase {
@@ -574,9 +574,15 @@ export interface User {
   threads: string[];
   notifications?: UserNotifications[];
 }
+export interface PushSubscriptionData {
+  endpoint: string;
+  keys: { p256dh: string; auth: string }; // base64url, as the browser returns them
+  expirationTime?: number | null;
+}
+
 export interface UserNotifications {
   deviceId: string;
-  notificationToken: string; // FCM token for push notifications
+  subscription: PushSubscriptionData;
 }
 
 export type UserKind = "human" | "synthetic_agent" | "pma";

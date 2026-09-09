@@ -1,6 +1,6 @@
 /// <mls fileReference="_102036_/l2/environmentContract.ts" enhancement="_blank"/>
 
-import { IAgentMeta, IOpenClawIntegration, Thread, ToolsBeforeSendMessage, ExecutionContext, TaskData, Message } from '/_102036_/l2/shared/interfaces.js'
+import { IAgentMeta, IOpenClawIntegration, Thread, ToolsBeforeSendMessage, ExecutionContext, TaskData, Message, PushSubscriptionData } from '/_102036_/l2/shared/interfaces.js'
 
 export interface CollabProgramMenuItem {
     title: string;
@@ -52,7 +52,7 @@ export interface CollabMessagesEnvironment {
     }
 
     notifications?: {
-        getFCMTokenForBackend?(): Promise<string | null>;
+        getPushSubscriptionForBackend?(): Promise<PushSubscriptionData | null>;
         getNotifySoundUrl?(): Promise<string | null>;
         sendRequestMissed?(): Promise<void>;
         sendACK?(id: string): Promise<void>;
@@ -69,7 +69,7 @@ export interface CollabMessagesEnvironment {
  * RUNTIME TYPES 
  */
 type NotificationsRuntime = {
-    getFCMTokenForBackend: () => Promise<string | null>;
+    getPushSubscriptionForBackend: () => Promise<PushSubscriptionData | null>;
     getNotifySoundUrl: () => Promise<string | null>;
     sendRequestMissed: () => Promise<void>;
     sendACK: (id: string) => Promise<void>;
@@ -108,7 +108,7 @@ type ConfigRuntime = {
  * DEFAULTS (fallback)
  */
 const defaultNotifications: NotificationsRuntime = {
-    getFCMTokenForBackend: () => Promise.resolve(null),
+    getPushSubscriptionForBackend: () => Promise.resolve(null),
     getNotifySoundUrl: () => Promise.resolve(null),
     sendRequestMissed: () => Promise.resolve(),
     sendACK: () => Promise.resolve(),
@@ -227,8 +227,8 @@ export const environment = {
         getEnv().setIntegrationsOpenClaw?.(integrations) ?? Promise.resolve(),
 
     notifications: {
-        getFCMTokenForBackend: () =>
-            getEnvNotifications().getFCMTokenForBackend(),
+        getPushSubscriptionForBackend: () =>
+            getEnvNotifications().getPushSubscriptionForBackend(),
 
         getNotifySoundUrl: () =>
             getEnvNotifications().getNotifySoundUrl(),
