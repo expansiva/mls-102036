@@ -29,6 +29,7 @@ export interface RequestAddMessage extends RequestBase {
   content: string;
   contextToBot?: Record<string, any>;
   replyTo?: string; // use createAt of the message being replied to, obs. orderAt is not used for replyTo, because it can be changed when message is edited
+  senderDeviceId?: string;
 }
 
 export interface ResponseAddMessage extends ResponseBase {
