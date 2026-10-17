@@ -308,6 +308,37 @@ export interface ResponseEnsureHumanDm extends ResponseBase {
   code?: HumanDmErrorCode;
 }
 
+export interface RequestEnsureModuleThread extends RequestBase {
+  action: 'ensureModuleThread';
+  userId: string;
+  email: string;
+  project: string;
+  module: string;
+  name: string;
+}
+
+export interface ResponseEnsureModuleThread {
+  userId: string;
+  thread: Thread;
+  created: boolean;
+}
+
+export interface RequestOpenModuleTask extends RequestBase {
+  action: 'openModuleTask';
+  userId: string;
+  threadId: string;
+  title: string;
+  content: string;
+  ref: TaskModuleRef;
+  step: string;
+}
+
+export interface ResponseOpenModuleTask {
+  task: TaskData;
+  taskRoomThread: Thread;
+  created: boolean;
+}
+
 export interface RequestDeleteThread extends RequestBase {
   action: "deleteThread";
   userId: string; // owner of the thread
@@ -1291,6 +1322,29 @@ export interface TaskOperation {
   message?: string | null; // clarification message
 }
 
+export type TaskModuleRef = {
+  project: string;
+  module: string;
+  entity: string;
+  recordId: string;
+  processId: string;
+  workflowVersion: string;
+};
+
+export type TaskModuleProgressEntry = {
+  at: string;
+  by: string;
+  from: string;
+  step: string;
+  note?: string;
+};
+
+export type TaskModuleProgress = {
+  step: string;
+  actingUserId?: string;
+  history: TaskModuleProgressEntry[];
+};
+
 export interface TaskData {
   PK: string; // Primary key, format: `task/#{taskId}`
   SK: 'metadata'; // Sort key of the composite primary key (legacy: “range key")
@@ -1325,6 +1379,7 @@ export interface TaskData {
     pmaConfigRef?: string;
     lastDecisionLogRef?: string;
   };
+  module?: { ref: TaskModuleRef; progress: TaskModuleProgress };
 }
 
 export type TaskStatus = 'todo' | 'in progress' | 'paused' | 'done' | 'failed';
@@ -1661,7 +1716,17 @@ export type AgentIntentRemoveHook = {
   hookSequential: number;
 };
 
-export type AgentIntent = AgentIntentAddStep | AgentIntentPauseOrContinue | AgentIntentUpdateStatus | AgentIntentParallelSteps | AgentIntentPromptReady | AgentIntentAddMessageAI | AgentIntentRemoveHook;
+export type AgentIntentModuleProgress = {
+  type: 'module-progress';
+  taskId: string;
+  from: string;
+  to: string;
+  actingUserId?: string;
+  note?: string;
+  done?: boolean;
+};
+
+export type AgentIntent = AgentIntentAddStep | AgentIntentPauseOrContinue | AgentIntentUpdateStatus | AgentIntentParallelSteps | AgentIntentPromptReady | AgentIntentAddMessageAI | AgentIntentRemoveHook | AgentIntentModuleProgress;
 
 // ===================
 // AGENT HOOKS
