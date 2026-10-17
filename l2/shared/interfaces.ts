@@ -1328,7 +1328,7 @@ export type TaskModuleRef = {
   entity: string;
   recordId: string;
   processId: string;
-  workflowVersion: string;
+  workflowVersion: string | null;
 };
 
 export type TaskModuleProgressEntry = {
