@@ -1,4 +1,7 @@
 /// <mls fileReference="_102036_/l2/shared/interfaces.ts" enhancement="_blank"/>
+// GENERATED from collab-messages/src/global.ts by "pnpm run interfaces:102036". Do not edit by hand.
+
+
 
 export enum HttpStatus {
   OK = 200,
@@ -9,9 +12,9 @@ export enum HttpStatus {
   FORBIDDEN = 403,
   CONFLICT = 409,
   SERVER_ERROR = 500,
-  NOT_IMPLEMENTED = 501
+  NOT_IMPLEMENTED = 501,
+  SERVICE_UNAVAILABLE = 503
 }
-
 
 export interface RequestBase {
   action: string;
@@ -29,11 +32,12 @@ export interface RequestAddMessage extends RequestBase {
   content: string;
   contextToBot?: Record<string, any>;
   replyTo?: string; // use createAt of the message being replied to, obs. orderAt is not used for replyTo, because it can be changed when message is edited
-  senderDeviceId?: string;
+  senderDeviceId?: string; // device that sent; absent = unknown (skip entire author)
 }
 
 export interface ResponseAddMessage extends ResponseBase {
   message: Message;
+  messages?: Message[];
   task?: TaskData;
   taskRoomThread?: Thread;
   botOutputs?: BotOutput[];
@@ -109,6 +113,9 @@ export interface RequestUpdateMessage extends RequestBase {
   threadId: string;
   messageId: string;
   reaction?: string; // emoji or text to add or update or remove from reactions, if the user already reacted with this reaction it will be removed, otherwise it will be added
+  pin?: boolean;
+  favorite?: boolean;
+  readConfirmation?: "request" | "confirm" | "cancel" | "requestExecution" | "reviewExecution";
   messageAction?: "delete" | "moderate" | "createTask";
   editContent?: string;
   taskTitle?: string;
@@ -116,8 +123,10 @@ export interface RequestUpdateMessage extends RequestBase {
 
 export interface ResponseUpdateMessage extends ResponseBase {
   message: Message;
-  task?: TaskData;
-  taskRoomThread?: Thread;
+  thread?: Thread;
+  messages?: Message[];
+  user?: User;
+  users?: User[];
 }
 
 export interface RequestAddMessageAI extends RequestBase {
@@ -158,6 +167,89 @@ export interface ResponseAddUser extends ResponseBase {
   user: User;
 }
 
+export interface RequestAddOrUpdateOpenClawConnector extends RequestBase {
+  action: "addOrUpdateOpenClawConnector";
+  userId: string;
+  connectorId: string;
+  name: string;
+  baseUrl: string;
+  gatewayToken: string;
+  inboundToken: string;
+  enabled: boolean;
+  defaultTimeoutMs?: number;
+  defaultOutputMode?: OpenClawOutputMode;
+}
+
+export interface ResponseAddOrUpdateOpenClawConnector extends ResponseBase {
+  connector: OpenClawConnector;
+}
+
+export interface RequestRemoveOpenClawConnector extends RequestBase {
+  action: "removeOpenClawConnector";
+  userId: string;
+  connectorId: string;
+}
+
+export interface ResponseRemoveOpenClawConnector extends ResponseBase {
+  connectorId: string;
+}
+
+export interface RequestListOpenClawConnectors extends RequestBase {
+  action: "listOpenClawConnectors";
+  userId: string;
+}
+
+export interface ResponseListOpenClawConnectors extends ResponseBase {
+  connectors: OpenClawConnector[];
+}
+
+export interface RequestListOpenClawAvailableAgents extends RequestBase {
+  action: "listOpenClawAvailableAgents";
+  userId: string;
+  connectorId: string;
+}
+
+export interface ResponseListOpenClawAvailableAgents extends ResponseBase {
+  connectorId: string;
+  defaultId: string;
+  mainKey: string;
+  scope: "per-sender" | "global";
+  agents: OpenClawRemoteAgentSummary[];
+}
+
+export interface RequestCreateOpenClawAgent extends RequestBase {
+  action: "createOpenClawAgent";
+  userId: string;
+  connectorId: string;
+  name: string;
+  workspace: string;
+  emoji?: string;
+  avatar?: string;
+  soulMd?: string;
+  identityMd?: string;
+}
+
+export interface ResponseCreateOpenClawAgent extends ResponseBase {
+  connectorId: string;
+  agent: OpenClawRemoteAgentSummary;
+  collabUserId: string;
+}
+
+export interface RequestDeleteOpenClawAgent extends RequestBase {
+  action: "deleteOpenClawAgent";
+  userId: string;
+  connectorId: string;
+  agentId: string;
+  deleteFiles?: boolean;
+}
+
+export interface ResponseDeleteOpenClawAgent extends ResponseBase {
+  connectorId: string;
+  agentId: string;
+  collabUserId?: string;
+  updatedThreadIds: string[];
+}
+
 export interface RequestUpdateUserDetails extends RequestBase {
   action: "updateUserDetails";
   userId: string;
@@ -189,6 +281,31 @@ export interface RequestAddThread extends RequestBase {
 
 export interface ResponseAddThread extends ResponseBase {
   thread: Thread;
+}
+
+export type HumanDmErrorCode =
+  | "not_found"
+  | "self"
+  | "schema"
+  | "not_human"
+  | "legacy_ambiguous"
+  | "archived"
+  | "pair_corrupt"
+  | "storage_unavailable"
+  | "contention_exhausted"
+  | "unknown_outcome";
+
+export interface RequestEnsureHumanDm extends RequestBase {
+  action: "ensureHumanDm";
+  userId: string;
+  recipientUserId: string;
+  group: ThreadGroup;
+}
+
+export interface ResponseEnsureHumanDm extends ResponseBase {
+  outcome?: "created" | "existing";
+  thread?: Thread;
+  code?: HumanDmErrorCode;
 }
 
 export interface RequestDeleteThread extends RequestBase {
@@ -325,6 +442,94 @@ export interface ResponseEnsureTaskRoom extends ResponseBase {
   thread: Thread;
 }
 
+export type UserMemorySectionName =
+  | 'identity_hints'
+  | 'communication_style'
+  | 'work_rhythm'
+  | 'decision_style'
+  | 'authority_hints'
+  | 'learned_preferences';
+
+export interface UserMemorySourceInput {
+  kind: 'message' | 'memory_section' | 'confirmation';
+  ref: string;
+}
+
+export interface RequestGetUserMemory extends RequestBase {
+  action: 'getUserMemory';
+  userId: string;
+  threadId: string;
+  openSourceMessageId?: string;
+}
+
+export interface RequestProposeUserMemory extends RequestBase {
+  action: 'proposeUserMemory';
+  userId: string;
+  threadId: string;
+  expectedVersion: number;
+  idempotencyKey: string;
+  updates: Partial<Record<UserMemorySectionName, string>>;
+  sources?: Partial<Record<UserMemorySectionName, UserMemorySourceInput[]>>;
+  reason: string;
+}
+
+export interface RequestDecideUserMemoryProposal extends RequestBase {
+  action: 'decideUserMemoryProposal';
+  userId: string;
+  threadId: string;
+  proposalId: string;
+  decision: 'confirm' | 'reject';
+  expectedVersion: number;
+  idempotencyKey: string;
+  reviewMessageId?: string;
+}
+
+export interface RequestCorrectUserMemory extends RequestBase {
+  action: 'correctUserMemory';
+  userId: string;
+  threadId: string;
+  section: UserMemorySectionName;
+  content: string;
+  sources?: UserMemorySourceInput[];
+  expectedVersion: number;
+  idempotencyKey: string;
+  reviewMessageId?: string;
+}
+
+export interface RequestInvalidateUserMemory extends RequestBase {
+  action: 'invalidateUserMemory';
+  userId: string;
+  threadId: string;
+  section: UserMemorySectionName | 'all';
+  expectedVersion: number;
+  idempotencyKey: string;
+  reviewMessageId?: string;
+}
+
+export interface ResponseUserMemory extends ResponseBase {
+  memory: unknown;
+}
+
+export interface RequestGetE01Execution extends RequestBase {
+  action: 'getE01Execution';
+  userId: string;
+  threadId: string;
+  executionId?: string;
+  sourceMessageId?: string;
+  openSourceMessageId?: string;
+}
+
+export interface RequestCancelE01Execution extends RequestBase {
+  action: 'cancelE01Execution';
+  userId: string;
+  threadId: string;
+  executionId: string;
+}
+
+export interface ResponseE01Execution extends ResponseBase {
+  execution: unknown;
+}
+
 export interface RequestGetMessagesAfter extends RequestBase {
   action: "getMessagesAfter";
   threadId: string;
@@ -372,6 +577,46 @@ export interface ResponseAddUserInThread extends ResponseBase {
   thread: Thread;
 }
 
+export interface RequestAddOrUpdateThreadOpenClawAgent extends RequestBase {
+  action: "addOrUpdateThreadOpenClawAgent";
+  userId: string;
+  threadId: string;
+  alias: string;
+  connectorId: string;
+  agentId: string;
+  collabUserId: string;
+  enabled: boolean;
+  sessionMode?: OpenClawSessionMode;
+  handoffThreadRole?: OpenClawHandoffThreadRole;
+  defaultForThread?: boolean;
+}
+
+export interface ResponseAddOrUpdateThreadOpenClawAgent extends ResponseBase {
+  thread: Thread;
+}
+
+export interface RequestRemoveThreadOpenClawAgent extends RequestBase {
+  action: "removeThreadOpenClawAgent";
+  userId: string;
+  threadId: string;
+  alias: string;
+}
+
+export interface ResponseRemoveThreadOpenClawAgent extends ResponseBase {
+  thread: Thread;
+}
+
+export interface RequestListThreadOpenClawAgents extends RequestBase {
+  action: "listThreadOpenClawAgents";
+  userId: string;
+  threadId: string;
+}
+
+export interface ResponseListThreadOpenClawAgents extends ResponseBase {
+  threadId: string;
+  agents: OpenClawAgentBinding[];
+}
+
 export interface RequestRemoveUserInThread extends RequestBase {
   action: "removeUserInThread";
   userId: string; // usersId from executor
@@ -391,6 +636,8 @@ export interface RequestGetThreadUpdate extends RequestBase {
   threadId: string;
   deviceId?: string; // device id for push notifications
   lastOrderAt?: string; // optional, to get messages after this orderAt
+  // explicit first load: last N messages (tail). Absence of lastOrderAt still means "no messages".
+  initialLoad?: boolean;
 }
 
 export interface ResponseGetThreadUpdate extends ResponseBase {
@@ -398,7 +645,8 @@ export interface ResponseGetThreadUpdate extends ResponseBase {
   users: User[];
   messages?: Message[]; // optional, if lastOrderAt is provided
   threadsPending: string[]; // threads that the user has to sync
-  hasMore?: boolean;
+  hasMore?: boolean; // more messages newer than this page (incremental sync)
+  hasOlder?: boolean; // more messages older than this page (tail / first load)
 }
 
 export interface RequestGetUserUpdate extends RequestBase {
@@ -406,6 +654,17 @@ export interface RequestGetUserUpdate extends RequestBase {
   userId?: string;
   name?: string;
   avatar_url?: string;
+}
+
+export interface RequestHeartbeat extends RequestBase {
+  action: "heartbeat";
+  userId: string;
+  deviceId: string;
+}
+
+export interface ResponseHeartbeat extends ResponseBase {
+  pending: string[];
+  online: { users: number; devices: number };
 }
 
 export interface ResponseGetUserUpdate extends ResponseBase {
@@ -423,6 +682,8 @@ export interface ResponseGetUsers extends ResponseBase {
   users: {
     userId: string; // compact UTC format `yyyyMMddHHmmss.nnn` unique sorted index, nnn is a sequence number
     name: string;
+    isAgent?: true; // present only for pma, synthetic_agent, or metadata.agentType
+    isHuman?: true; // present only for non-agent users with email or sub
   }[]
 }
 
@@ -491,6 +752,7 @@ export interface IntegrationOutput {
   integrationId: string;
   type: IntegrationType;
   responseMessageId?: string; // orderAt of the response message posted back, if any
+  responseMessage?: Message;
   error?: string;             // error message if execution failed
 }
 
@@ -522,10 +784,17 @@ export interface ResponseRemoveThreadIntegration extends ResponseBase {
 
 export interface RequestWebhookInbound {
   threadId: string;
-  integrationId: string;
+  integrationId?: string;
+  connectorId?: string;
+  agentId?: string;
   content: string;
   type?: Message['type'];
   replyTo?: string;
+  externalCaseId?: string;
+  channel?: string;
+  customerIdentity?: string;
+  priority?: "low" | "normal" | "high" | "urgent";
+  metadata?: Record<string, any>;
 }
 
 export interface ResponseWebhookInbound extends ResponseBase {
@@ -541,10 +810,24 @@ export interface User {
   status: "active" | "blocked" | "deleted";
   avatar_url?: string;
   md?: string;
-  kind?: UserKind;
-  metadata?: UserMetadata;
   threads: string[];
   notifications?: UserNotifications[];
+  favorites?: string[];
+  readConfirmations?: UserReadConfirmations;
+  kind?: UserKind;
+  metadata?: UserMetadata;
+  // collab-auth identity binding (see layer_3_usecases/identity.ts).
+  // `sub` is the stable collab-auth subject id and is the canonical key used to
+  // verify the JWT presenting the request owns this record. `email` is stored
+  // for display/cross-reference. Both are set once (trust-on-first-use for
+  // pre-existing records) and compared afterwards.
+  sub?: string;
+  email?: string;
+}
+
+export interface UserReadConfirmations {
+  pending?: string[];
+  requested?: string[];
 }
 export interface PushSubscriptionData {
   endpoint: string;
@@ -592,7 +875,7 @@ export interface ThreadUsers {
   notification?: ThreadNotification;
 }
 
-export type ThreadGroup = "CRM" | "TASK" | "DOCS" | "CONNECT" | "APPS";
+export type ThreadGroup = "CRM" | "TASK" | "DOCS" | "CONNECT" | "APPS" | "MOMENTS";
 export type ThreadVisibility = "public" | "private" | "company" | "team"; // use private for only users in this thread
 export type ThreadStatus = "active" | "archived" | "deleting" | "deleted";
 export type ThreadNotification = "all" | "mentions" | "never";
@@ -611,17 +894,164 @@ export interface Thread {
   avatar_url: string;
   bots?: ThreadBot[];
   integrations?: ThreadIntegration[];
-  openClawAgents?: OpenClawAgentBinding[]
+  openClawAgents?: OpenClawAgentBinding[];
+  agentDm?: AgentDirectMessageBinding;
+  personalMemoryProtection?: {
+    kind: 'e01-personal-dm';
+    ownerUserId: string;
+    agentUserId: string;
+    protectedAt: string;
+  };
+  pinnedMessages?: PinnedMessage[];
   kind?: 'thread' | 'task-room';
   taskRoom?: {
     taskId: string;
     parentThreadId: string;
     workflowType: WorkflowType;
+    pmaId?: string;
+    pmaStatus?: "active" | "paused" | "disabled";
+    pmaConfigRef?: string;
+    lastDecisionLogRef?: string;
   };
   archivedAt?: string; // compact UTC format `yyyyMMddHHmmss` when this thread was archived
   archivedBy?: string;
   deletedAt?: string; // compact UTC format `yyyyMMddHHmmss` when this thread was deleted
   createdAt: string; // compact UTC format `yyyyMMddHHmmss` when this thread was created
+}
+
+export interface MomentsPublisher {
+  userId: string;
+  name: string;
+  avatar_url: string;
+}
+
+export interface MomentsFeedItem {
+  threadId: string;
+  publisher: MomentsPublisher;
+  message: Message;
+  seen: boolean;
+  reach?: number;
+}
+
+export interface MomentsSeenItem {
+  threadId: string;
+  messageId: string;
+}
+
+export interface MomentsSubscriptionItem {
+  threadId: string;
+  publisher: MomentsPublisher;
+  muted: boolean;
+}
+
+export interface MomentsStatsPost {
+  messageId: string;
+  createAt: string;
+  preview: string;
+  reach: number;
+  reactions: number;
+}
+
+export interface RequestEnsureMomentsRoom extends RequestBase {
+  action: "ensureMomentsRoom";
+  userId: string;
+}
+
+export type MomentsAudience = 'all' | 'selected';
+
+export interface ResponseEnsureMomentsRoom extends ResponseBase {
+  thread: Thread;
+  audience: MomentsAudience;
+}
+
+export interface RequestSetMomentsAudience extends RequestBase {
+  action: "setMomentsAudience";
+  userId: string;
+  audience: MomentsAudience;
+}
+
+export interface ResponseSetMomentsAudience extends ResponseBase {
+  thread: Thread;
+  audience: MomentsAudience;
+}
+
+export interface RequestSetMomentsReaders extends RequestBase {
+  action: "setMomentsReaders";
+  userId: string;
+  add?: string[];
+  remove?: string[];
+}
+
+export interface ResponseSetMomentsReaders extends ResponseBase {
+  thread: Thread;
+}
+
+export interface RequestGetMomentsFeed extends RequestBase {
+  action: "getMomentsFeed";
+  userId: string;
+  limit?: number;
+  before?: string;
+}
+
+export interface ResponseGetMomentsFeed extends ResponseBase {
+  items: MomentsFeedItem[];
+}
+
+export interface RequestMarkMomentSeen extends RequestBase {
+  action: "markMomentSeen";
+  userId: string;
+  items: MomentsSeenItem[]; // 1 to 50 items
+}
+
+export interface ResponseMarkMomentSeen extends ResponseBase {
+  ok: true;
+}
+
+export interface RequestSetMomentsMute extends RequestBase {
+  action: "setMomentsMute";
+  userId: string;
+  threadId: string;
+  muted: boolean;
+}
+
+export interface ResponseSetMomentsMute extends ResponseBase {
+  ok: true;
+}
+
+export interface RequestGetMomentsSubscriptions extends RequestBase {
+  action: "getMomentsSubscriptions";
+  userId: string;
+}
+
+export interface ResponseGetMomentsSubscriptions extends ResponseBase {
+  items: MomentsSubscriptionItem[];
+}
+
+export interface RequestGetMomentsStats extends RequestBase {
+  action: "getMomentsStats";
+  userId: string;
+  limit?: number;
+}
+
+export interface ResponseGetMomentsStats extends ResponseBase {
+  audience: number;
+  posts: MomentsStatsPost[];
+}
+
+export interface PinnedMessage {
+  messageId: string;
+  pinnedBy: string;
+  pinnedAt: string;
+  excerpt?: string;
+}
+
+export interface AgentDirectMessageBinding {
+  enabled: boolean;
+  agentId: string;
+  agentUserId: string;
+  agentType: "pma" | "agent";
+  status: "active" | "paused" | "disabled";
+  configRef?: string;
 }
 
 export interface ThreadHistoryEntry {
@@ -640,6 +1070,60 @@ export interface ThreadBot {
   lastExecutionAt?: string;      // UTC format
   memoryRef?: string;            // Reference to stored memory or context
   config?: Record<string, any>;  // Optional runtime config for the bot, sent to the LLM
+}
+
+export type OpenClawOutputMode = "final_only" | "status_and_final";
+export type OpenClawSessionMode = "thread" | "thread_user";
+export type OpenClawHandoffThreadRole = "handoff" | "collaboration";
+
+export interface OpenClawConnector {
+  connectorId: string;
+  name: string;
+  baseUrl: string;
+  gatewayToken: string;
+  inboundToken: string;
+  enabled: boolean;
+  defaultTimeoutMs: number;
+  defaultOutputMode: OpenClawOutputMode;
+  protocolVersion?: number;
+  transport?: "ws" | "http";
+}
+
+export interface OpenClawAgentBinding {
+  alias: string;
+  connectorId: string;
+  agentId: string;
+  collabUserId: string;
+  enabled: boolean;
+  sessionMode?: OpenClawSessionMode;
+  handoffThreadRole?: OpenClawHandoffThreadRole;
+  defaultForThread?: boolean;
+}
+
+export interface OpenClawRemoteAgentSummary {
+  id: string;
+  name?: string;
+  identity?: {
+    name?: string;
+    theme?: string;
+    emoji?: string;
+    avatar?: string;
+    avatarUrl?: string;
+  };
+  workspace?: string;
+  model?: {
+    primary?: string;
+    fallbacks?: string[];
+  };
+}
+
+export interface OpenClawDeviceState {
+  deviceId: string;
+  publicKey: string;
+  privateKeyPem: string;
+  publicKeyPem?: string;
+  deviceToken?: string;
+  authorizedAt?: string;
 }
 
 export enum ThreadFeature {
@@ -708,6 +1192,7 @@ export interface Message {
   externalPlatform?: string;
   translations?: Record<string, string>;
   reactions?: Record<string, string[]>; // key is reaction (emoji or text), value is array of userIds who reacted
+  readConfirmations?: MessageReadConfirmation[];
   attachments?: MessageAttachment[];
   moderation?: MessageModeration;
   edits?: MessageEditVersion[];
@@ -749,6 +1234,23 @@ export interface MessageAttachment {
   url?: string;
 }
 
+export interface MessageReadConfirmation {
+  kind?: "read" | "execution";
+  requestedBy: string;
+  requestedAt: string;
+  targetUserIds: string[];
+  confirmedBy?: Record<string, string>;
+  canceledAt?: string;
+  canceledBy?: string;
+  followupHistory?: MessageFollowupHistoryEntry[];
+}
+
+export interface MessageFollowupHistoryEntry {
+  userId: string;
+  reaction: string;
+  at: string;
+}
+
 export type MessageModerationStatus = "deleted" | "moderated";
 
 export interface MessageModeration {
@@ -777,21 +1279,6 @@ export interface MessagePerformanceCache extends Message {
     backgroundColor?: string; // background color of the footer, ex: "#000000"
     timestamp?: string;
   }[];
-}
-
-export interface ProviderConfig {
-  provider: string;
-  alternateProvider: string; // alternative provider to use if this is not available
-  model: string;
-  json: boolean; // accept json as output
-  onlyImage?: boolean; // true if this model only generate images
-  inputValue: number; // value for 1M tokens
-  outputValue: number; // value for 1M tokens
-  extrabody?: Record<string, string>;
-}
-
-export interface Providers {
-  [provider: string]: Record<string, ProviderConfig>;
 }
 
 export type TaskOperationType = "create" | "read" | "update" | "delete" | "query";
@@ -869,6 +1356,12 @@ export interface AIInteraction {
   cost: number; // cost in this interaction , with no deep cost
   trace: string[]; // optional trace of the steps
   payload: AIPayload[] | null; // Tree of steps or null for not processed
+  /** Typed accounting evidence for one local E01 gateway request. */
+  e01GatewayReceipt?: {
+    localRequests: 1;
+    providerAttempts: number | null;
+    costChargedUsd: number | null;
+  };
 }
 
 export interface LLMTool {
@@ -895,6 +1388,21 @@ export interface IAMessageInputType {
   type: 'system' | 'human' | 'ai';
   content: string;
 }
+
+/**
+ * Narrow transport-only input for the E02 audio worker. The regular agent
+ * contract above deliberately remains text-only: audio bytes may exist only
+ * while one bounded gateway request is being assembled.
+ */
+export interface IAudioHumanMessageInputType {
+  type: 'human';
+  content: [
+    { type: 'text'; text: string },
+    { type: 'input_audio'; input_audio: { data: string; format: 'mp3' | 'wav' } },
+  ];
+}
+
+export type IProxyMessageInputType = IAMessageInputType | IAudioHumanMessageInputType;
 
 export type AIStepStatus =
   'waiting_dependency' | // not ready yet
@@ -964,8 +1472,40 @@ export interface AIWorkflowStep {
 export interface AIAgentStep extends AIStep {
   type: 'agent';
   agentName: string;
+  /** Private service-step controls consumed only by the existing backend scheduler. */
+  e01Execution?: {
+    schemaVersion: 1;
+    executionId: string;
+    organizationId: string;
+    userId: string;
+    threadId?: string;
+    manifestRef: string;
+    maxAttempts: 1;
+    maxOutputTokens: number;
+    deadlineAt: string;
+    executionMode?: 'bounded' | 'legacy-supervised-pilot';
+    pilotId?: string;
+    pilotExpiresAt?: string;
+    pilotOperationalBudgetUsd?: number;
+    pilotLocalRequestLimit?: 6;
+    pilotNextRequestCostEstimateUsd?: number;
+  };
+  /** Compact E02 identity. Audio bytes and transcript text never enter TaskRecord. */
+  e02Audio?: {
+    schemaVersion: 1;
+    processingId: string;
+    executionId: string;
+    organizationId: string;
+    ownerUserId: string;
+    threadId: string;
+    phase: 'transcription' | 'interpretation';
+  };
   prompt?: string;
   rags: string[] | null; // name of files RAG to search
+  onFailure?: 'fail' // default
+  | 'continue' // continue workflow even if this step fail, use with caution, mark this step status = 'failed', don't mark parent step as failed.
+  | 'wait_after_prompt' // afterPromptStep will be triggered with stepStatus = "waiting_after_prompt_with_error"
+  | 'skip'; // skip this step and continue workflow as if it was completed successfully, mark this step status = 'completed'
 }
 
 export interface AIToolStep extends AIStep {
@@ -1011,6 +1551,7 @@ export type AgentIntentUpdateStatus = {
   status: AIStepStatus;
   traceMsg?: string;
   cleaner?: 'input' | 'input_output'; // how to clean previous interactions in this step
+  newTaskTitle?: string; // optional: rename the running task (e.g. a step that just resolved the module name)
 }
 
 export type AgentIntentAddStep = {
@@ -1156,217 +1697,4 @@ export type AgentHookPooling = AgentHookBase & {
 }
 
 export type AgentHooks = AgentHookBeforePromptStep | AgentHookAfterPromptStep | AgentHookPooling | AgentHookBeforeTool;
-
-export type IAgentMeta = {
-  visibility: 'public' | 'private';
-  agentName: string;
-  agentProject?: number;
-  agentFolder?: string;
-  scope?: string[];
-  avatar_url?: string;
-  agentDescription: string;
-}
-
-// Interfaces Integrations
-export interface IOpenClawAgent {
-  id: string;
-  name: string;
-  avatarUrl: string;
-  collabUserId: string; // collabMessages user id
-  createdAt: string;
-}
-
-export interface IOpenClawIntegration {
-  id: string;
-  name: string;
-  url: string;
-  connectorId: string;
-  bearerToken: string;
-  agents: IOpenClawAgent[];
-  createdAt: string;
-}
-
-
-export interface ToolsBeforeSendMessage {
-  toolName: string;
-  args: Record<string, any>;
-}
-
-// OPEN CLAW
-
-export interface RequestAddOrUpdateOpenClawConnector extends RequestBase {
-  action: "addOrUpdateOpenClawConnector";
-  userId: string;
-  connectorId: string;
-  name: string;
-  baseUrl: string;
-  gatewayToken: string;
-  inboundToken: string;
-  enabled: boolean;
-  defaultTimeoutMs?: number;
-  defaultOutputMode?: OpenClawOutputMode;
-}
-
-export interface ResponseAddOrUpdateOpenClawConnector extends ResponseBase {
-  connector: OpenClawConnector;
-}
-
-export interface RequestRemoveOpenClawConnector extends RequestBase {
-  action: "removeOpenClawConnector";
-  userId: string;
-  connectorId: string;
-}
-
-export interface ResponseRemoveOpenClawConnector extends ResponseBase {
-  connectorId: string;
-}
-
-export interface RequestListOpenClawConnectors extends RequestBase {
-  action: "listOpenClawConnectors";
-  userId: string;
-}
-
-export interface ResponseListOpenClawConnectors extends ResponseBase {
-  connectors: OpenClawConnector[];
-}
-
-export type OpenClawOutputMode = "final_only" | "status_and_final";
-export type OpenClawSessionMode = "thread" | "thread_user";
-export type OpenClawHandoffThreadRole = "handoff" | "collaboration";
-
-export interface OpenClawConnector {
-  connectorId: string;
-  name: string;
-  baseUrl: string;
-  gatewayToken: string;
-  inboundToken: string;
-  enabled: boolean;
-  defaultTimeoutMs: number;
-  defaultOutputMode: OpenClawOutputMode;
-  protocolVersion?: number,
-  transport?: string,
-}
-
-export interface RequestAddOrUpdateThreadOpenClawAgent extends RequestBase {
-  action: "addOrUpdateThreadOpenClawAgent";
-  userId: string;
-  threadId: string;
-  alias: string;
-  connectorId: string;
-  agentId: string;
-  collabUserId: string;
-  enabled: boolean;
-  sessionMode?: OpenClawSessionMode;
-  handoffThreadRole?: OpenClawHandoffThreadRole;
-  defaultForThread?: boolean;
-}
-
-export interface ResponseAddOrUpdateThreadOpenClawAgent extends ResponseBase {
-  thread: Thread;
-}
-
-export interface RequestRemoveThreadOpenClawAgent extends RequestBase {
-  action: "removeThreadOpenClawAgent";
-  userId: string;
-  threadId: string;
-  alias: string;
-}
-
-export interface ResponseRemoveThreadOpenClawAgent extends ResponseBase {
-  thread: Thread;
-}
-
-export interface RequestListThreadOpenClawAgents extends RequestBase {
-  action: "listThreadOpenClawAgents";
-  userId: string;
-  threadId: string;
-}
-
-export interface ResponseListThreadOpenClawAgents extends ResponseBase {
-  threadId: string;
-  agents: OpenClawAgentBinding[];
-}
-
-export interface OpenClawAgentBinding {
-  alias: string;
-  connectorId: string;
-  agentId: string;
-  collabUserId: string;
-  enabled: boolean;
-  sessionMode?: OpenClawSessionMode;
-  handoffThreadRole?: OpenClawHandoffThreadRole;
-  defaultForThread?: boolean;
-}
-
-export interface OpenClawRemoteAgentSummary {
-  id: string;
-  name?: string;
-  identity?: {
-    name?: string;
-    theme?: string;
-    emoji?: string;
-    avatar?: string;
-    avatarUrl?: string;
-  };
-  workspace?: string;
-  model?: {
-    primary?: string;
-    fallbacks?: string[];
-  };
-}
-
-export interface RequestListOpenClawConnectors extends RequestBase {
-  action: "listOpenClawConnectors";
-  userId: string;
-}
-
-export interface ResponseListOpenClawConnectors extends ResponseBase {
-  connectors: OpenClawConnector[];
-}
-
-export interface RequestListOpenClawAvailableAgents extends RequestBase {
-  action: "listOpenClawAvailableAgents";
-  userId: string;
-  connectorId: string;
-}
-
-export interface ResponseListOpenClawAvailableAgents extends ResponseBase {
-  connectorId: string;
-  defaultId: string;
-  mainKey: string;
-  scope: "per-sender" | "global";
-  agents: OpenClawRemoteAgentSummary[];
-}
-
-export interface RequestCreateOpenClawAgent extends RequestBase {
-  action: "createOpenClawAgent";
-  userId: string;
-  connectorId: string;
-  name: string;
-  workspace: string;
-  emoji?: string;
-  avatar?: string;
-  soulMd?: string;
-  identityMd?: string;
-}
-
-export interface ResponseCreateOpenClawAgent extends ResponseBase {
-  connectorId: string;
-  agent: OpenClawRemoteAgentSummary;
-  collabUserId: string;
-}
-
-export interface RequestDeleteOpenClawAgent extends RequestBase {
-  action: "deleteOpenClawAgent";
-  userId: string;
-  connectorId: string;
-  agentId: string;
-  deleteFiles?: boolean;
-}
-
-export interface ResponseDeleteOpenClawAgent extends ResponseBase {
-  connectorId: string;
-  agentId: string;
-  collabUserId?: string;
-  updatedThreadIds: string[];
-}
+export * from '/_102036_/l2/shared/interfacesFrontend.js';
