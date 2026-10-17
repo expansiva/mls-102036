@@ -325,35 +325,6 @@ export interface ResponseEnsureTaskRoom extends ResponseBase {
   thread: Thread;
 }
 
-export interface TagVocabularyEntry {
-  tag: string;
-  label?: { pt: string; en: string };
-  color: 'bug' | 'feature' | 'business' | 'process' | 'neutral';
-}
-
-export interface RequestListTasks extends RequestBase {
-  action: "listTasks";
-  userId: string;
-  view: 'active' | 'closed';
-  cursor?: string;
-  pageSize?: number;
-}
-
-export interface ResponseListTasks extends ResponseBase {
-  tasks: TaskData[];
-  nextCursor?: string;
-}
-
-export interface RequestGetOrgPreferences extends RequestBase {
-  action: "getOrgPreferences";
-  userId: string;
-  organizationId: string;
-}
-
-export interface ResponseGetOrgPreferences extends ResponseBase {
-  tagVocabulary: TagVocabularyEntry[];
-}
-
 export interface RequestGetMessagesAfter extends RequestBase {
   action: "getMessagesAfter";
   threadId: string;
