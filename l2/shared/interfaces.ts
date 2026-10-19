@@ -353,8 +353,38 @@ export interface RequestGetModuleTask extends RequestBase {
 
 export interface ResponseGetModuleTask {
   task: TaskData;
-  room: Thread;
+  room: Thread | null;
+  roomIssue?: 'not_linked' | 'missing';
   messageId?: string;
+}
+
+export type ModuleActionError =
+  | { code: 'busy' }
+  | { code: 'module_task_incomplete'; taskId: string }
+  | { code: 'ambiguous' }
+  | { code: 'link_conflict' };
+
+export interface RequestLinkModulePerson extends RequestBase {
+  action: 'linkModulePerson';
+  userId: string;
+  mdmId: string;
+  loginEmail: string;
+}
+
+export interface ResponseLinkModulePerson {
+  cmUserId: string;
+  outcome: 'linked' | 'existing';
+}
+
+export interface RequestResolveModulePeople extends RequestBase {
+  action: 'resolveModulePeople';
+  userId: string;
+  mdmIds?: string[];
+  cmUserIds?: string[];
+}
+
+export interface ResponseResolveModulePeople {
+  people: { mdmId?: string; cmUserId?: string; state: 'linked' | 'unlinked' | 'removed' }[];
 }
 
 export interface RequestListModuleTasks extends RequestBase {
