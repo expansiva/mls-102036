@@ -325,18 +325,46 @@ export interface ResponseEnsureModuleThread {
 
 export interface RequestOpenModuleTask extends RequestBase {
   action: 'openModuleTask';
-  userId: string;
-  threadId: string;
-  title: string;
-  content: string;
   ref: TaskModuleRef;
-  step: string;
+  plan: ModulePlan;
+  startStep: string;
+  origin: ModuleOrigin;
+  owner: string;
+  actorNow: string | null;
+  title: string;
+  room: ModuleRoomChoice;
+  message?: { content: string };
 }
 
 export interface ResponseOpenModuleTask {
   task: TaskData;
-  taskRoomThread: Thread;
+  room: Thread;
   created: boolean;
+}
+
+export interface RequestGetModuleTask extends RequestBase {
+  action: 'getModuleTask';
+  ref: Omit<TaskModuleRef, 'workflowVersion'>;
+}
+
+export interface ResponseGetModuleTask {
+  task: TaskData;
+  room: Thread;
+  messageId?: string;
+}
+
+export interface RequestListModuleTasks extends RequestBase {
+  action: 'listModuleTasks';
+  project: string;
+  module: string;
+  processId?: string;
+  cursor?: string;
+  pageSize: number;
+}
+
+export interface ResponseListModuleTasks {
+  items: { ref: TaskModuleRef; taskId: string; revision: number; status: TaskStatus }[];
+  cursor?: string;
 }
 
 export interface RequestDeleteThread extends RequestBase {
@@ -1331,18 +1359,63 @@ export type TaskModuleRef = {
   workflowVersion: string | null;
 };
 
-export type TaskModuleProgressEntry = {
-  at: string;
-  by: string;
-  from: string;
-  step: string;
-  note?: string;
+export type ModuleOrigin = {
+  kind: 'screen' | 'channel' | 'schedule' | 'event';
+  by?: string;
+  config?: string;
 };
 
-export type TaskModuleProgress = {
+export type ModuleRoomChoice = {
+  mode: 'exclusive' | 'person' | 'group';
+  groupKey?: string;
+  members?: string[];
+};
+
+export type ModuleStepKind = 'human' | 'mechanical' | 'llm' | 'wait' | 'alert';
+
+export type ModuleOwnerKind = 'person' | 'module' | 'agent' | 'clock';
+
+export type ModuleWake = {
+  everyMinutes: number;
+  until?: string;
+  routine: string;
+  nextAt: string;
+  seq: number;
+};
+
+export type ModulePlanStep = {
+  key: string;
+  kind: ModuleStepKind;
+  ownerKind: ModuleOwnerKind;
+  actorRef?: string;
+  journeyRef?: string;
+  functionRef?: string;
+  next: string[];
+  title?: string;
+  conditions?: string;
+  params?: Record<string, string>;
+};
+
+export type ModulePlan = {
+  processId: string;
+  title: string;
+  moduleTitle: string;
+  steps: ModulePlanStep[];
+};
+
+export type TaskModuleExecutor =
+  | { kind: 'person'; userId: string }
+  | { kind: 'routine'; name: string };
+
+export type TaskModuleHistoryEntry = {
+  at: string;
+  commandId: string;
+  executor: TaskModuleExecutor;
+  from: string | null;
   step: string;
-  actingUserId?: string;
-  history: TaskModuleProgressEntry[];
+  actorNow: string | null;
+  done: boolean;
+  note?: string;
 };
 
 export interface TaskData {
@@ -1379,7 +1452,14 @@ export interface TaskData {
     pmaConfigRef?: string;
     lastDecisionLogRef?: string;
   };
-  module?: { ref: TaskModuleRef; progress: TaskModuleProgress };
+  module?: {
+    ref: TaskModuleRef;
+    origin: ModuleOrigin;
+    owner: string;
+    revision: number;
+    room: ModuleRoomChoice;
+    history: TaskModuleHistoryEntry[];
+  };
 }
 
 export type TaskStatus = 'todo' | 'in progress' | 'paused' | 'done' | 'failed';
@@ -1510,7 +1590,26 @@ export interface AIStep {
   nextSteps: AIPayload[] | null; // Tree of steps or null for not processed or [] if no next steps
 }
 
-export type AIPayload = AIAgentStep | AIToolStep | AIClarificationStep | AIResultStep | AIFlexibleResultStep;
+export interface AIModuleStep extends AIStep {
+  type: 'module';
+  interaction: null;
+  module: {
+    key: string;
+    kind: ModuleStepKind;
+    ownerKind: ModuleOwnerKind;
+    actorRef?: string;
+    journeyRef?: string;
+    functionRef?: string;
+    next: string[];
+    conditions?: string;
+    params?: Record<string, string>;
+    actorNow?: string | null;
+    wake?: ModuleWake;
+    passes: number;
+  };
+}
+
+export type AIPayload = AIAgentStep | AIToolStep | AIClarificationStep | AIResultStep | AIFlexibleResultStep | AIModuleStep;
 
 export interface AIWorkflowStep {
   type: WorkflowType;
@@ -1716,17 +1815,22 @@ export type AgentIntentRemoveHook = {
   hookSequential: number;
 };
 
-export type AgentIntentModuleProgress = {
-  type: 'module-progress';
+export type AgentIntentModuleAdvance = {
+  type: 'module-advance';
   taskId: string;
+  commandId: string;
+  expectedRevision: number;
   from: string;
   to: string;
-  actingUserId?: string;
-  note?: string;
+  actorNow: string | null;
   done?: boolean;
+  note?: string;
+  executor: TaskModuleExecutor;
+  wake?: ModuleWake;
+  message?: { content: string };
 };
 
-export type AgentIntent = AgentIntentAddStep | AgentIntentPauseOrContinue | AgentIntentUpdateStatus | AgentIntentParallelSteps | AgentIntentPromptReady | AgentIntentAddMessageAI | AgentIntentRemoveHook | AgentIntentModuleProgress;
+export type AgentIntent = AgentIntentAddStep | AgentIntentPauseOrContinue | AgentIntentUpdateStatus | AgentIntentParallelSteps | AgentIntentPromptReady | AgentIntentAddMessageAI | AgentIntentRemoveHook | AgentIntentModuleAdvance;
 
 // ===================
 // AGENT HOOKS
