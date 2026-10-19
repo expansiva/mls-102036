@@ -155,6 +155,8 @@ export interface RequestApplyIntents extends RequestBase {
 export interface ResponseApplyIntents extends ResponseBase {
   message?: Message;
   task: TaskData;
+  moduleAdvance?: { commandId: string; outcome: 'applied' | 'unchanged' };
+  moduleMessage?: { state: 'sent' | 'pending'; threadId: string; orderAt?: string };
 }
 
 export interface RequestAddUser extends RequestBase {
@@ -334,12 +336,14 @@ export interface RequestOpenModuleTask extends RequestBase {
   title: string;
   room: ModuleRoomChoice;
   message?: { content: string };
+  executor: TaskModuleExecutor;
 }
 
 export interface ResponseOpenModuleTask {
   task: TaskData;
   room: Thread;
   created: boolean;
+  moduleMessage?: { state: 'sent' | 'pending'; threadId: string; orderAt?: string };
 }
 
 export interface RequestGetModuleTask extends RequestBase {
@@ -1416,6 +1420,14 @@ export type TaskModuleHistoryEntry = {
   actorNow: string | null;
   done: boolean;
   note?: string;
+  message?: {
+    state: 'pending' | 'sent';
+    threadId: string;
+    orderAt?: string;
+    content: string;
+    author: 'person' | 'virtual';
+    userId?: string;
+  };
 };
 
 export interface TaskData {
@@ -1458,6 +1470,7 @@ export interface TaskData {
     owner: string;
     revision: number;
     room: ModuleRoomChoice;
+    moduleTitle: string;
     history: TaskModuleHistoryEntry[];
   };
 }
