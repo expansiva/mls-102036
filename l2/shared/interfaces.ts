@@ -362,7 +362,8 @@ export type ModuleActionError =
   | { code: 'busy' }
   | { code: 'module_task_incomplete'; taskId: string }
   | { code: 'ambiguous' }
-  | { code: 'link_conflict' };
+  | { code: 'link_conflict' }
+  | { code: 'identity_too_large' };
 
 export interface RequestLinkModulePerson extends RequestBase {
   action: 'linkModulePerson';
@@ -384,7 +385,7 @@ export interface RequestResolveModulePeople extends RequestBase {
 }
 
 export interface ResponseResolveModulePeople {
-  people: { mdmId?: string; cmUserId?: string; state: 'linked' | 'unlinked' | 'removed' }[];
+  people: { mdmId?: string; cmUserId?: string; state: 'linked' | 'unlinked' | 'removed' | 'inconsistent' }[];
 }
 
 export interface RequestListModuleTasks extends RequestBase {
