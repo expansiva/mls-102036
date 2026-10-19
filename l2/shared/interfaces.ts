@@ -903,7 +903,7 @@ export type UserKind = "human" | "synthetic_agent" | "pma";
 
 export interface UserMetadata {
   source?: "collab" | "openclaw" | "external";
-  agentType?: "pma" | "agent" | "external_agent";
+  agentType?: "pma" | "agent" | "external_agent" | "module";
   definitionRef?: string;
   definitionVersion?: string;
   modelType?: string;
