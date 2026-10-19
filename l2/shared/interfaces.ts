@@ -1826,7 +1826,7 @@ export type AgentIntentModuleAdvance = {
   done?: boolean;
   note?: string;
   executor: TaskModuleExecutor;
-  wake?: ModuleWake;
+  wake?: Omit<ModuleWake, 'nextAt' | 'seq'>; // the cm computes nextAt and seq
   message?: { content: string };
 };
 
