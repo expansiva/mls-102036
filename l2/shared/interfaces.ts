@@ -82,6 +82,26 @@ export interface ResponseCompleteAttachmentUpload extends ResponseBase {
   message: Message;
 }
 
+export type AttachmentUploadFailureStage = 'storage_put';
+export type AttachmentUploadFailureKind = 'network' | 'http';
+export interface RequestReportAttachmentUploadFailure extends RequestBase {
+  action: "reportAttachmentUploadFailure";
+  userId: string;
+  threadId: string;
+  attachmentId: string;
+  storageKey: string;
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+  stage: AttachmentUploadFailureStage;
+  failure: AttachmentUploadFailureKind;
+  httpStatus?: number;   // only with failure 'http'
+  pageOrigin: string;    // window.location.origin of the sender
+}
+export interface ResponseReportAttachmentUploadFailure extends ResponseBase {
+  logged: boolean;
+}
+
 export interface RequestDeleteAttachment extends RequestBase {
   action: "deleteAttachment";
   userId: string;
