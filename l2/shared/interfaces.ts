@@ -1418,6 +1418,24 @@ export type ModuleWake = {
   seq: number;
 };
 
+export type ModuleWakeEvent = {
+  eventId: string;
+  scheduledAt: string;
+  attempt: number;
+  ref: TaskModuleRef;
+  taskId: string;
+  stepKey: string;
+  pass: number;
+  seq: number;
+  revision: number;
+  routine: string;
+};
+
+export type ModuleWakeReceipt = {
+  eventId: string;
+  outcome: 'accepted' | 'stale';
+};
+
 export type ModulePlanStep = {
   key: string;
   kind: ModuleStepKind;
