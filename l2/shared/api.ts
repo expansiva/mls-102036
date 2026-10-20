@@ -221,6 +221,17 @@ export function msgCompleteAttachmentUpload(
 	);
 }
 
+export function msgReportAttachmentUploadFailure(
+	args: Omit<msg.RequestReportAttachmentUploadFailure, "action">
+) {
+	return handleRequest<msg.ResponseReportAttachmentUploadFailure>(
+		post<msg.ResponseReportAttachmentUploadFailure>({
+			action: "reportAttachmentUploadFailure",
+			...args
+		})
+	);
+}
+
 export function msgDeleteAttachment(
 	args: Omit<msg.RequestDeleteAttachment, "action">
 ) {
