@@ -63,7 +63,13 @@ export interface CollabMessagesEnvironment {
         getBotContextVarsBeforeMessageSend?(thread: Thread, messageText: string): Promise<string[]>;
         getBotContextVarsBeforeMessageSend2?(vars: string[], myArgs: Record<string, any>): Promise<ToolsBeforeSendMessage[]>;
     };
+
+    details?: {
+        openContent?(input: DetailContentInput): Promise<boolean>
+    };
 }
+
+export interface DetailContentInput { id: string; title: string; element: HTMLElement }
 
 /**
  * RUNTIME TYPES 
@@ -90,6 +96,8 @@ type AgentsRuntime = {
 type TaskRuntime = {
     openTaskDetails: (messageId: string, taskId: string, task: TaskData, message: Message) => Promise<{ openLocal: boolean, element: HTMLElement | undefined }>
 };
+
+type DetailsRuntime = { openContent: (input: DetailContentInput) => Promise<boolean> };
 
 type AppsRuntime = {
     getProgramMenu: () => Promise<CollabProgramMenu[]>;
@@ -124,6 +132,10 @@ const defaultAgents: AgentsRuntime = {
     generateSvgAvatar: () => Promise.resolve(null),
     executeAgent: () => Promise.resolve(),
     loadAgent: () => Promise.resolve(null),
+};
+
+const defaultDetails: DetailsRuntime = {
+    openContent: async (_input: DetailContentInput) => false,
 };
 
 const defaultTasks: TaskRuntime = {
@@ -199,6 +211,13 @@ function getEnvTasks(): TaskRuntime {
     };
 }
 
+function getEnvDetails(): DetailsRuntime {
+    return {
+        ...defaultDetails,
+        ...getEnv().details,
+    };
+}
+
 function getEnvApps(): AppsRuntime {
     return {
         ...defaultApps,
@@ -264,6 +283,9 @@ export const environment = {
 
     tasks: {
         openTaskDetails: (messageId: string, taskId: string, task: TaskData, message: Message) => getEnvTasks().openTaskDetails(messageId, taskId, task, message)
+    },
+    details: {
+        openContent: (input: DetailContentInput) => getEnvDetails().openContent(input)
     },
     apps: {
         getProgramMenu: () =>
