@@ -1449,7 +1449,41 @@ export type ModuleWakeEvent = {
   seq: number;
   revision: number;
   routine: string;
+  /** Absent or 'wake' is the wake tick. 'llm-step-finished' is the end of a module LLM step. */
+  kind?: 'wake' | 'llm-step-finished';
+  /** Present when kind is 'llm-step-finished': the requestModuleLlmStep commandId. */
+  commandId?: string;
+  /** Present when kind is 'llm-step-finished'. */
+  state?: 'completed' | 'failed';
 };
+
+/** Refusal codes of requestModuleLlmStep. task_too_large matches module advance. */
+export type ModuleLlmStepErrorCode =
+  | 'paused'
+  | 'llm_step_not_current'
+  | 'llm_pass_limit'
+  | 'task_too_large';
+
+export interface RequestModuleLlmStep extends RequestBase {
+  action: 'requestModuleLlmStep';
+  ref: TaskModuleRef;
+  commandId: string;
+  stepKey: string;
+  /** Prompt messages already in the interaction shape (system and human). */
+  input: IAMessageInputType[];
+  /** Output schema in the interaction tool shape, when the caller sends one. */
+  tools?: LLMTool[];
+  maxPasses: number;
+}
+
+export interface ResponseModuleLlmStep {
+  state: 'pending' | 'in_progress' | 'completed' | 'failed';
+  /** Text, or the tool arguments, when state is completed. */
+  result?: string;
+  /** Present when state is failed. */
+  failure?: { code: string; message: string };
+  cost?: number;
+}
 
 export type ModuleWakeReceipt = {
   eventId: string;
@@ -1725,6 +1759,12 @@ export interface AIAgentStep extends AIStep {
     pilotOperationalBudgetUsd?: number;
     pilotLocalRequestLimit?: 6;
     pilotNextRequestCostEstimateUsd?: number;
+  };
+  /** Identity of a module LLM request. Absent on agent-task steps. */
+  moduleLlm?: {
+    commandId: string;
+    stepKey: string;
+    pass: number;
   };
   /** Compact E02 identity. Audio bytes and transcript text never enter TaskRecord. */
   e02Audio?: {
