@@ -1530,12 +1530,37 @@ export type AssistantActivityPartial = {
   code: string;
 };
 
+/** Step the app already returns inside an activity item. There is no page address on this object. */
+export type AssistantActivityStep = {
+  stepKey?: string;
+  title?: string;
+  actorNow?: string | null;
+  state?: string;
+  actionable?: boolean;
+};
+
+/** Record identity the app already returns. `recordId` is the record value, not a page address. */
+export type AssistantActivityRef = {
+  project?: string;
+  module?: string;
+  processId?: string;
+  entity?: string;
+  recordId?: string;
+  workflowVersion?: string | null;
+};
+
 /** One projected activity. Extra fields from the app are kept; the cm does not interpret the module. */
 export type AssistantActivityItem = {
   projectId: string;
   moduleId: string;
   taskId: string;
+  /** When the app last synced this projection. It is the only timestamp on the item. */
   syncedAt: string;
+  taskTitle?: string;
+  processTitle?: string;
+  moduleTitle?: string;
+  ref?: AssistantActivityRef;
+  activity?: AssistantActivityStep;
   [key: string]: unknown;
 };
 
