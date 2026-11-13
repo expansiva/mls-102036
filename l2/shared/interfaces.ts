@@ -1355,6 +1355,11 @@ export interface Message {
     recordParam?: string;
     recordId?: string;
   };
+  /** Yes/no for one Nora command. Written by code, never by the model text. */
+  noraConfirm?: {
+    expiresAt: string;
+    answered?: boolean;
+  };
 }
 
 export type MessageAttachmentKind = 'image' | 'video' | 'audio' | 'document' | 'file';
