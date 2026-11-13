@@ -776,6 +776,26 @@ export interface RequestHeartbeat extends RequestBase {
   deviceId: string;
 }
 
+/** Activities of the caller. `userId` in the body is ignored; the person is the caller. */
+export interface RequestGetMyAssistantActivities extends RequestBase {
+  action: "getMyAssistantActivities";
+  cursor?: string;
+  userId?: string;
+}
+
+/** One app or one of its modules that did not answer. */
+export type MyAssistantActivityPartial = {
+  appId: string;
+  moduleId: string;
+  code: string;
+};
+
+export interface ResponseGetMyAssistantActivities extends ResponseBase {
+  items: AssistantActivityItem[];
+  partial: MyAssistantActivityPartial[];
+  cursor?: string;
+}
+
 export interface ResponseHeartbeat extends ResponseBase {
   pending: string[];
   online: { users: number; devices: number };
@@ -1489,6 +1509,52 @@ export type ModuleWakeReceipt = {
   eventId: string;
   outcome: 'accepted' | 'stale';
 };
+
+/** Person the cm asks the app about. Authorities stay raw; the app applies them. */
+export type AssistantOnBehalfOf = {
+  cmUserId: string;
+  authorities: string[];
+  snapshotAt: string;
+  via: 'nora';
+};
+
+export type AssistantActivitiesRequest = {
+  kind: 'activities';
+  onBehalfOf: AssistantOnBehalfOf;
+  includeNonActionable?: boolean;
+  cursor?: string;
+};
+
+export type AssistantActivityPartial = {
+  moduleId: string;
+  code: string;
+};
+
+/** One projected activity. Extra fields from the app are kept; the cm does not interpret the module. */
+export type AssistantActivityItem = {
+  projectId: string;
+  moduleId: string;
+  taskId: string;
+  syncedAt: string;
+  [key: string]: unknown;
+};
+
+export type AssistantActivitiesSuccess = {
+  ok: true;
+  outcome: 'done' | 'no_person';
+  items: AssistantActivityItem[];
+  cursor?: string;
+  partial: AssistantActivityPartial[];
+};
+
+export type AssistantActivitiesFailure = {
+  ok: false;
+  outcome: 'unavailable' | 'config_error' | 'rejected' | 'invalid';
+  status?: number;
+  code?: string;
+};
+
+export type AssistantActivitiesResult = AssistantActivitiesSuccess | AssistantActivitiesFailure;
 
 export type ModulePlanStep = {
   key: string;
