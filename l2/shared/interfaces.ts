@@ -1589,6 +1589,7 @@ export type TaskModuleHistoryEntry = {
   actorNow: string | null;
   done: boolean;
   note?: string;
+  via?: 'nora';
   message?: {
     state: 'pending' | 'sent';
     threadId: string;
@@ -2015,6 +2016,7 @@ export type AgentIntentModuleAdvance = {
   actorNow: string | null;
   done?: boolean;
   note?: string;
+  via?: 'nora';
   executor: TaskModuleExecutor;
   wake?: Omit<ModuleWake, 'nextAt' | 'seq'>; // the cm computes nextAt and seq
   message?: { content: string };
