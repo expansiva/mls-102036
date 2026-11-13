@@ -1819,7 +1819,9 @@ export interface AIAgentStep extends AIStep {
     maxAttempts: 1;
     maxOutputTokens: number;
     deadlineAt: string;
-    executionMode?: 'bounded' | 'legacy-supervised-pilot' | 'organization';
+    executionMode?: 'bounded' | 'legacy-supervised-pilot';
+    /** Set only for Nora: the organization LLM limit applies, with no per-call pilot. */
+    organizationBilling?: boolean;
     pilotId?: string;
     pilotExpiresAt?: string;
     pilotOperationalBudgetUsd?: number;
