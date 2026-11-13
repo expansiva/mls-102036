@@ -1588,6 +1588,98 @@ export type AssistantActivitiesFailure = {
 
 export type AssistantActivitiesResult = AssistantActivitiesSuccess | AssistantActivitiesFailure;
 
+/** Schema the app publishes. The cm checks it and does not invent module names. */
+export const ASSISTANT_CATALOG_SCHEMA = 'assistant-catalog-v1';
+
+/** One action inside a module catalog. Extra fields from the app stay on the object. */
+export type AssistantCatalogItem = {
+  route: string;
+  kind: 'cmd' | 'qry';
+  actionId: string;
+  actors: string[];
+  assistant: 'included' | 'excluded';
+  title?: string;
+  risk?: string;
+  inputs?: Array<{ path?: string; role?: string; [field: string]: unknown }>;
+  [field: string]: unknown;
+};
+
+/** Catalog file of one module, as `listAssistantCatalog` puts it on the wire. */
+export type AssistantCatalogDocument = {
+  schemaVersion: typeof ASSISTANT_CATALOG_SCHEMA;
+  module: string;
+  commands: AssistantCatalogItem[];
+  queries: AssistantCatalogItem[];
+  [field: string]: unknown;
+};
+
+export type AssistantCatalogRequest = {
+  kind: 'catalog';
+  onBehalfOf: AssistantOnBehalfOf;
+  knownRelease?: string;
+};
+
+export type AssistantCatalogEntry = {
+  moduleId: string;
+  catalog: AssistantCatalogDocument;
+};
+
+export type AssistantCatalogSuccess = {
+  ok: true;
+  outcome: 'done' | 'no_person';
+  release: string;
+  /** Absent when the app sees that this cm already holds `release`. */
+  catalogs?: AssistantCatalogEntry[];
+  allowed: string[];
+  partial: AssistantActivityPartial[];
+};
+
+/** Finals the cm adds. `unknown`: the request left and the result was not read. */
+export type AssistantCallFailure = {
+  ok: false;
+  outcome: 'unavailable' | 'config_error' | 'rejected' | 'invalid' | 'unknown' | 'timeout_before_send';
+  status?: number;
+  code?: string;
+};
+
+export type AssistantCatalogResult = AssistantCatalogSuccess | AssistantCallFailure;
+
+export type AssistantExecOutcome =
+  | 'done'
+  | 'refused_rule'
+  | 'forbidden'
+  | 'no_person'
+  | 'not_found'
+  | 'stale_version'
+  | 'invalid_input'
+  | 'unavailable';
+
+export type AssistantExecError = {
+  code: string;
+  message: string;
+  /** Present on `forbidden`: actors that may run the action. */
+  required?: string[];
+};
+
+export type AssistantExecRequest = {
+  kind: 'exec';
+  onBehalfOf: AssistantOnBehalfOf;
+  actionId: string;
+  commandId: string;
+  input: unknown;
+  expectVersion?: number;
+};
+
+/** `done` carries `data`. Every other app outcome carries `error`, except `no_person`. */
+export type AssistantExecSuccess = {
+  ok: true;
+  outcome: AssistantExecOutcome;
+  data?: unknown;
+  error?: AssistantExecError;
+};
+
+export type AssistantExecResult = AssistantExecSuccess | AssistantCallFailure;
+
 export type ModulePlanStep = {
   key: string;
   kind: ModuleStepKind;
