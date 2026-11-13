@@ -1348,6 +1348,13 @@ export interface Message {
   visibility?: "admin"; // only for admin, example: user left the thread
   url?: string;
   replyTo?: string; // use createAt of the message being replied to, obs. orderAt is not used for replyTo, because it can be changed when message is edited
+  /** Screen address for one Nora activity. Built by code from the task, never from the model text. */
+  noraOpen?: {
+    projectId: string;
+    page: string;
+    recordParam?: string;
+    recordId?: string;
+  };
 }
 
 export type MessageAttachmentKind = 'image' | 'video' | 'audio' | 'document' | 'file';
