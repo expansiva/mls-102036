@@ -1819,7 +1819,7 @@ export interface AIAgentStep extends AIStep {
     maxAttempts: 1;
     maxOutputTokens: number;
     deadlineAt: string;
-    executionMode?: 'bounded' | 'legacy-supervised-pilot';
+    executionMode?: 'bounded' | 'legacy-supervised-pilot' | 'organization';
     pilotId?: string;
     pilotExpiresAt?: string;
     pilotOperationalBudgetUsd?: number;
