@@ -4,7 +4,10 @@ import { IAgentMeta, IOpenClawIntegration, Thread, ToolsBeforeSendMessage, Execu
 
 export interface CollabProgramMenuItem {
     title: string;
+    /** Lucide icon name; '' when the item has none. */
     icon: string;
+    /** Own SVG markup (`navigation[i].iconSvg`), already checked by isSafeMenuIconSvg; wins over `icon`. */
+    iconSvg?: string;
     url: string;
     pageName: string;
     target?: string;
