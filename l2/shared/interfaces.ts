@@ -1531,6 +1531,13 @@ export type AssistantOnBehalfOf = {
   via: 'nora';
 };
 
+/** A virtual employee that acts in its own name: its authority is the set of tools turned on for it; `requestedBy` is the user of the cm who called it, with no authority. */
+export type AssistantOnBehalfOfAgent = {
+  agentId: string;
+  requestedBy?: string;
+  via: 'agent';
+};
+
 export type AssistantActivitiesRequest = {
   kind: 'activities';
   onBehalfOf: AssistantOnBehalfOf;
@@ -1669,7 +1676,7 @@ export type AssistantExecError = {
 
 export type AssistantExecRequest = {
   kind: 'exec';
-  onBehalfOf: AssistantOnBehalfOf;
+  onBehalfOf: AssistantOnBehalfOf | AssistantOnBehalfOfAgent;
   actionId: string;
   commandId: string;
   input: unknown;
