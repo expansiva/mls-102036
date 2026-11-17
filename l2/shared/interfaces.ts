@@ -2362,4 +2362,18 @@ export interface CmUndoAgentChangeOutput {
   version: string;
 }
 
+/** What a call of the cm to an app through `/exec/connection` answers: the output, or one of the seven codes. */
+export type ConnectionResult<Output = unknown> =
+  | { ok: true; output: Output }
+  | { ok: false; code: ConnectionErrorCode; message: string };
+
+/** The body of `POST /exec/connection` on an app (the cm calls the module). */
+export interface RequestConnectionExec {
+  connectionId: string;
+  operationId: string;
+  input: unknown;
+  context: ConnectionContext;
+  idempotencyKey?: string;
+}
+
 export * from '/_102036_/l2/shared/interfacesFrontend.js';
