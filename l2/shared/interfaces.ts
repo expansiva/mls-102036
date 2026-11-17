@@ -12,6 +12,7 @@ export enum HttpStatus {
   FORBIDDEN = 403,
   CONFLICT = 409,
   SERVER_ERROR = 500,
+  UNPROCESSABLE_ENTITY = 422,
   NOT_IMPLEMENTED = 501,
   SERVICE_UNAVAILABLE = 503
 }
@@ -1808,7 +1809,25 @@ export interface AIInteraction {
     localRequests: 1;
     providerAttempts: number | null;
     costChargedUsd: number | null;
+    /** The model calls the gateway reported for this request, in order (kept on the execution record for the trace of the turn). */
+    calls?: E01LlmCall[];
   };
+}
+
+/** One call of a model, as the gateway reported it. */
+export interface E01LlmCall {
+  alias: string;
+  model: string;
+  stage?: string;
+  inputTokens: number;
+  outputTokens: number;
+  /** Tokens of the output spent on reasoning, when the model reports them. */
+  reasoningTokens?: number;
+  /** Time of the call in milliseconds, when the gateway reports it. */
+  ms?: number;
+  costUsd: number;
+  /** The error code of a call that failed. */
+  error?: string;
 }
 
 export interface LLMTool {
@@ -2187,4 +2206,113 @@ export type AgentHookPooling = AgentHookBase & {
 }
 
 export type AgentHooks = AgentHookBeforePromptStep | AgentHookAfterPromptStep | AgentHookPooling | AgentHookBeforeTool;
+
+// ---- connectionCall: the entry of the cm for the module `agents` (backend to backend) ----
+// The names are the official ones of the connection catalog `cm` (`cm.defs.ts` of the runtime); the cm copies them and imports nothing from the Studio.
+
+/** The seven answers a caller tells apart. Never a silent error. */
+export type ConnectionErrorCode = 'not_found' | 'disabled' | 'unavailable' | 'conflict' | 'refused' | 'forbidden' | 'invalid';
+
+/** Who the call is about, outside `input`. `actorUserId` is the id of the user in the cm. */
+export interface ConnectionContext {
+  organizationId: string;
+  actorUserId?: string;
+  actorMdmId?: string;
+  customerId?: string;
+  agentId?: string;
+  requestedBy?: string;
+}
+
+export interface RequestConnectionCall extends RequestBase {
+  action: 'connectionCall';
+  connectionId: string;
+  operationId: string;
+  input: unknown;
+  context: ConnectionContext;
+  idempotencyKey?: string;
+  expectVersion?: string;
+}
+
+export interface ResponseConnectionCallOk {
+  statusCode: HttpStatus.OK;
+  ok: true;
+  output: unknown;
+}
+
+export interface ResponseConnectionCallFailure {
+  statusCode: HttpStatus;
+  ok: false;
+  code: ConnectionErrorCode;
+  message: string;
+}
+
+export type ResponseConnectionCall = ResponseConnectionCallOk | ResponseConnectionCallFailure;
+
+/** The catalog item of a module as it is today (`ToolCatalogItem` of the harness): the id and the kind, and every other field the module sends. */
+export type CmToolEntry = { actionId: string; kind: 'cmd' | 'qry'; [field: string]: unknown };
+
+/** A tool of an agent: module, subject, action, with the purpose, the kind and the whole catalog item of the module. */
+export interface CmTool {
+  moduleId: string;
+  moduleTitle?: string;
+  subject: string;
+  subjectTitle?: string;
+  actionId: string;
+  title?: string;
+  purpose: string;
+  kind: 'cmd' | 'qry';
+  entry: CmToolEntry;
+}
+
+export type CmAgentAudience = 'member' | 'room' | 'external';
+export type CmDraftStatus = 'preparing' | 'ready' | 'refused';
+
+/** What a company can adjust; `key` is a dotted name of the override of the configuration of the cm, `label` is in the language of the answer. */
+export interface CmAgentLimit {
+  key: string;
+  label: string;
+  kind: 'number' | 'text' | 'boolean';
+  value: number | string | boolean;
+  max?: number;
+}
+export type CmAgentLimits = CmAgentLimit[];
+
+export interface CmAgentCard {
+  agentId: string;
+  name: string;
+  audience: CmAgentAudience;
+  enabled: boolean;
+  responsibleUserId?: string;
+  draftStatus?: CmDraftStatus;
+  refusedReason?: string;
+}
+
+export interface CmListAgentsInput {
+  includeDrafts?: boolean;
+}
+export interface CmListAgentsOutput {
+  agents: CmAgentCard[];
+}
+
+export interface CmReadAgentInput {
+  agentId: string;
+}
+export interface CmReadAgentOutput {
+  agentId: string;
+  name: string;
+  audience: CmAgentAudience;
+  definition: string;
+  role: string;
+  state: string;
+  enabled: boolean;
+  responsibleUserId?: string;
+  limits: CmAgentLimits;
+  personal?: { role: string; state: string };
+  version: string;
+}
+
+export type CmListCmToolsInput = Record<string, never>;
+export interface CmListCmToolsOutput {
+  tools: CmTool[];
+}
 export * from '/_102036_/l2/shared/interfacesFrontend.js';
