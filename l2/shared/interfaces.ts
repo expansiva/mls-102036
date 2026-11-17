@@ -2339,6 +2339,8 @@ export interface CmUpdateAgentOutput {
   version: string;
   /** What `undoAgentChange` takes. */
   changeId: string;
+  /** One-line summary of what a prompt change altered, made by the cm. */
+  summary?: string;
 }
 
 export interface CmListAgentHistoryInput {
@@ -2349,6 +2351,8 @@ export interface CmAgentChange {
   /** ISO 8601. */
   at: string;
   authorUserId: string;
+  /** One-line summary of what a prompt change altered, made by the cm. */
+  summary?: string;
 }
 export interface CmListAgentHistoryOutput {
   changes: CmAgentChange[];
@@ -2426,5 +2430,51 @@ export interface CmSimulateAgentOutput {
   path?: string[];
   actions?: string[];
 }
+
+export interface CmCreateAgentInput {
+  /** The text of the person: what the agent is and what it does. */
+  prompt: string;
+  /** The catalog of tools, so the cm can suggest tools in the same call. The whole catalog travels only here and in `runAiPrompt`. */
+  catalog?: CmTool[];
+}
+export interface CmCreateAgentOutput {
+  /** The result comes later, through `agentDraftReady`. */
+  draftId: string;
+}
+
+export interface CmActivateAgentInput {
+  draftId: string;
+}
+export interface CmActivateAgentOutput {
+  /** The `draftId` of `createAgent` is already the final id: this is the same value, not a new one. */
+  agentId: string;
+}
+
+export interface CmDiscardAgentDraftInput {
+  draftId: string;
+}
+export interface CmDiscardAgentDraftOutput {
+  discarded: true;
+}
+
+export interface CmRunAiPromptInput {
+  prompt: string;
+  /** The format of the answer the caller wants: a JSON schema. */
+  outputFormat: Record<string, unknown>;
+}
+export interface CmRunAiPromptOutput {
+  result: unknown;
+}
+
+/** What the cm tells the module when the preparation of a draft ends (`agentDraftReady`). */
+export interface CmAgentDraftReadyInput {
+  draftId: string;
+  status: 'ready' | 'refused';
+  /** When refused: the reason in words, the same as `refusedReason` of the card. */
+  refusedReason?: string;
+  /** When ready: the tools the model suggests, by action id. */
+  suggestedTools?: string[];
+}
+export type CmAgentDraftReadyOutput = Record<string, never>;
 
 export * from '/_102036_/l2/shared/interfacesFrontend.js';
