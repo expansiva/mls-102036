@@ -2376,4 +2376,25 @@ export interface RequestConnectionExec {
   idempotencyKey?: string;
 }
 
+/** What the cm tells the module about one execution of an agent (`record`): numbers and ids, never the text of the conversation. */
+export type CmRecordOutcome = 'done' | 'refused_rule' | 'forbidden' | 'no_person' | 'not_found' | 'stale_version' | 'invalid_input' | 'unavailable';
+export interface CmRecordInput {
+  /** The identity of the execution; a repeat does not record again. */
+  executionId: string;
+  agentId: string;
+  /** Whether it counted (`real`) or was a rehearsal. */
+  mode: 'real' | 'rehearsal';
+  /** ISO 8601. */
+  startedAt: string;
+  durationMs: number;
+  costUsd: number;
+  actions: Array<{ actionId: string; outcome: CmRecordOutcome }>;
+  usedMainModel: boolean;
+  handedOff: boolean;
+  refs: { conversationId?: string; taskId?: string; messageId?: string };
+}
+export interface CmRecordOutput {
+  status: 'recorded' | 'existing';
+}
+
 export * from '/_102036_/l2/shared/interfacesFrontend.js';
