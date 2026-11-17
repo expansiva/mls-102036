@@ -2397,4 +2397,34 @@ export interface CmRecordOutput {
   status: 'recorded' | 'existing';
 }
 
+/** The levels of the first version of the simulation: what the agent can, and what it understands. Nothing is saved. */
+export type CmSimulationLevel = 'canDo' | 'understands';
+export interface CmSimulateAgentInput {
+  /** The id of an agent, or of a draft (`draftId`). */
+  agentId: string;
+  level: CmSimulationLevel;
+  /** Whom to simulate: the id of the user in the cm, or a role `<moduleId>:<actorId>`. Missing: the one who simulates (`context.actorUserId`). */
+  as?: string;
+  /** For `understands`: the sentence. */
+  message?: string;
+  /** To simulate a behavior not saved yet. */
+  draftInstructions?: string;
+}
+export interface CmSimulationCanDoRow {
+  actionId: string;
+  allowed: boolean;
+  /** Why it can or cannot. */
+  reason: string;
+}
+export interface CmSimulateAgentOutput {
+  level: CmSimulationLevel;
+  /** canDo: every tool the agent has with "can"/"cannot" and the reason; and the context that would be sent. */
+  tree?: CmSimulationCanDoRow[];
+  context?: Record<string, unknown>;
+  /** understands: whether the sentence is a request for an action, the path of the tree, and the actions. */
+  isActionRequest?: boolean;
+  path?: string[];
+  actions?: string[];
+}
+
 export * from '/_102036_/l2/shared/interfacesFrontend.js';
