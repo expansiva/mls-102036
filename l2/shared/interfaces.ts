@@ -2315,4 +2315,51 @@ export type CmListCmToolsInput = Record<string, never>;
 export interface CmListCmToolsOutput {
   tools: CmTool[];
 }
+
+/** What `updateAgent` sends for a limit: the `key` of the limits `readAgent` answers. */
+export interface CmAgentLimitValue {
+  key: string;
+  value: number | string | boolean;
+}
+
+/**
+ * Change by prompt, or by field (turn on or off, the responsible, the limits). Exactly one way per call. The author is
+ * `context.actorUserId`, and the version the caller read goes in `expectVersion`. With `scope: 'personal'` only `prompt` is accepted:
+ * it changes the conduct of the person of the context, not the agent of the company.
+ */
+export interface CmUpdateAgentInput {
+  agentId: string;
+  scope?: 'company' | 'personal';
+  prompt?: string;
+  enabled?: boolean;
+  responsibleUserId?: string;
+  limits?: CmAgentLimitValue[];
+}
+export interface CmUpdateAgentOutput {
+  version: string;
+  /** What `undoAgentChange` takes. */
+  changeId: string;
+}
+
+export interface CmListAgentHistoryInput {
+  agentId: string;
+}
+export interface CmAgentChange {
+  changeId: string;
+  /** ISO 8601. */
+  at: string;
+  authorUserId: string;
+}
+export interface CmListAgentHistoryOutput {
+  changes: CmAgentChange[];
+}
+
+export interface CmUndoAgentChangeInput {
+  agentId: string;
+  changeId: string;
+}
+export interface CmUndoAgentChangeOutput {
+  version: string;
+}
+
 export * from '/_102036_/l2/shared/interfacesFrontend.js';
