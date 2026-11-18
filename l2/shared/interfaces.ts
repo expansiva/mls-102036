@@ -1683,7 +1683,7 @@ export type AssistantExecRequest = {
   expectVersion?: number;
 };
 
-/** `done` carries `data`. Every other app outcome carries `error`, except `no_person`. */
+/** `done` carries `data`. Every other app outcome carries `error`; `no_person` may come without it, and with `ASSISTANT_AGENT_NO_MEMBER` when an agent has no member yet. */
 export type AssistantExecSuccess = {
   ok: true;
   outcome: AssistantExecOutcome;
