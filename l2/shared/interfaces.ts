@@ -819,6 +819,7 @@ export interface ResponseGetUsers extends ResponseBase {
     name: string;
     isAgent?: true; // present only for pma, synthetic_agent, or metadata.agentType
     isHuman?: true; // present only for non-agent users with email or sub
+    callable?: true; // present only for the user of an agent created and in force: it can be called by `@`
   }[]
 }
 
