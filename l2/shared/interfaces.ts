@@ -352,7 +352,7 @@ export interface RequestOpenModuleTask extends RequestBase {
   plan: ModulePlan;
   startStep: string;
   origin: ModuleOrigin;
-  owner: string;
+  owner: string | null; // null only for a routine opened by an event or a schedule, with no person: the virtual user of the module owns the task inside
   actorNow: string | null;
   title: string;
   room: ModuleRoomChoice;
@@ -1776,7 +1776,7 @@ export interface TaskData {
   module?: {
     ref: TaskModuleRef;
     origin: ModuleOrigin;
-    owner: string;
+    owner: string | null; // null when the module opened the task with no person
     revision: number;
     room: ModuleRoomChoice;
     moduleTitle: string;
