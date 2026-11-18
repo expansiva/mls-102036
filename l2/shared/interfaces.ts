@@ -2314,6 +2314,8 @@ export interface CmReadAgentOutput {
   enabled: boolean;
   responsibleUserId?: string;
   limits: CmAgentLimits;
+  /** The member of the agent in the mdm of the app that asks; absent before the agent is active. */
+  mdmId?: string;
   personal?: { role: string; state: string };
   version: string;
 }
@@ -2411,6 +2413,16 @@ export interface CmRecordInput {
 }
 export interface CmRecordOutput {
   status: 'recorded' | 'existing';
+}
+
+/** The cm asks the app to make the agent a member of the organization: create it, or set its name and whether it is active. Never deleted. */
+export interface CmEnsureAgentMemberInput {
+  agentId: string;
+  name: string;
+  active: boolean;
+}
+export interface CmEnsureAgentMemberOutput {
+  mdmId: string;
 }
 
 /** The levels of the first version of the simulation: what the agent can, and what it understands. Nothing is saved. */
