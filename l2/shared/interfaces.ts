@@ -811,6 +811,7 @@ export interface RequestGetUsers extends RequestBase {
   userId: string;
   status: "active" | "blocked";
   prefixName: string;
+  callableOnly?: true; // only the users of the agents created and in force (by prefixName, with no ceiling of people)
 }
 
 export interface ResponseGetUsers extends ResponseBase {
