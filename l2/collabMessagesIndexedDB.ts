@@ -61,6 +61,20 @@ export function openDB(): Promise<IDBDatabase> {
     });
 }
 
+/** Empties every store of the local chat database (rooms, users, messages, tasks, poolings): what it holds belongs to the user who is gone. */
+export async function clearAllLocalData(): Promise<void> {
+    const db = await openDB();
+    const names = Array.from(db.objectStoreNames);
+    if (names.length === 0) return;
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(names, "readwrite");
+        for (const name of names) tx.objectStore(name).clear();
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject("Failed to clear the local chat data");
+        tx.onabort = () => reject("Clearing the local chat data was aborted");
+    });
+}
+
 export async function addMessages(messages: msg.MessagePerformanceCache[]): Promise<void> {
     const db = await openDB();
 

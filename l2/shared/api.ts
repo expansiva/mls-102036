@@ -30,7 +30,77 @@ async function handleRequest<T>(promise: Promise<T & { statusCode: number; msg?:
 	}
 }
 
+/** What the cm answers (403) when the `userId` of the body is not the person of the token. */
+const IDENTITY_REFUSED = 'userId does not match authenticated user';
+
+type IdentityRefusedHandler = () => Promise<string>;
+
+let identityRefusedHandler: IdentityRefusedHandler | undefined;
+let identitySwapInFlight: Promise<string> | undefined;
+/** Old id -> the id that replaced it: a call refused a moment after the swap reuses it instead of swapping again. */
+const swappedIds = new Map<string, string>();
+
+/**
+ * Registers the one handler that runs when the cm refuses the saved identity: it drops what was saved for the old user and returns the id of the
+ * person the token belongs to. Registering again replaces it; `undefined` removes it (and forgets the swaps made).
+ */
+export function setIdentityRefusedHandler(handler: IdentityRefusedHandler | undefined): void {
+	identityRefusedHandler = handler;
+	identitySwapInFlight = undefined;
+	swappedIds.clear();
+}
+
+function isIdentityRefused(error: unknown): boolean {
+	const failure = error as { statusCode?: number; message?: string } | undefined;
+	return failure?.statusCode === msg.HttpStatus.FORBIDDEN && typeof failure.message === 'string' && failure.message.includes(IDENTITY_REFUSED);
+}
+
+/** The id of the person after the swap for `oldId`; calls refused together wait for the same swap. A failure of the handler is logged and thrown. */
+async function swapIdentity(oldId: string): Promise<string> {
+	const done = swappedIds.get(oldId);
+	if (done) return done;
+	const handler = identityRefusedHandler;
+	if (!handler) throw new Error('No handler for a refused identity');
+	if (!identitySwapInFlight) {
+		identitySwapInFlight = handler().then(
+			(newId) => {
+				identitySwapInFlight = undefined;
+				swappedIds.set(oldId, newId);
+				return newId;
+			},
+			(error: unknown) => {
+				identitySwapInFlight = undefined;
+				console.error('Could not replace the refused identity', error);
+				throw error;
+			}
+		);
+	}
+	const newId = await identitySwapInFlight;
+	swappedIds.set(oldId, newId);
+	return newId;
+}
+
 export async function post<T = msg.ResponseBase>(
+	args: msg.RequestBase
+): Promise<T> {
+	try {
+		return await postOnce<T>(args);
+	} catch (error) {
+		const sent = (args as { userId?: string }).userId;
+		if (!sent || !identityRefusedHandler || !isIdentityRefused(error)) throw error;
+		let newId: string;
+		try {
+			newId = await swapIdentity(sent);
+		} catch {
+			throw error;
+		}
+		if (!newId || newId === sent) throw error;
+		// once: a second refusal goes up as it is
+		return postOnce<T>({ ...args, userId: newId } as msg.RequestBase);
+	}
+}
+
+async function postOnce<T = msg.ResponseBase>(
 	args: msg.RequestBase
 ): Promise<T> {
 	let urlHttp = environment.config.getApiUrl();
