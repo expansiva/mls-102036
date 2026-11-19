@@ -648,6 +648,45 @@ export async function updateUsers(usersFromServer: msg.User[]): Promise<void> {
     });
 }
 
+/**
+ * Who in the local copy of users has no reason to stay: not in `keepUserIds`, not a member of any local room (a room deleted with unread
+ * messages included: `cleanupThreads` keeps it) and not the user of an agent bound to one. When in doubt nothing goes: no local room at all
+ * (first load, a failed read) or no id to keep means an empty list.
+ */
+export function usersToRemove(
+    threads: ReadonlyArray<{ users?: ReadonlyArray<{ userId: string }>; openClawAgents?: ReadonlyArray<{ collabUserId: string }> }>,
+    users: ReadonlyArray<{ userId: string }>,
+    keepUserIds: ReadonlyArray<string>
+): string[] {
+    const keepers = keepUserIds.filter((id) => !!id);
+    if (threads.length === 0 || keepers.length === 0) return [];
+    const keep = new Set<string>(keepers);
+    for (const thread of threads) {
+        for (const member of thread.users ?? []) keep.add(member.userId);
+        for (const agent of thread.openClawAgents ?? []) keep.add(agent.collabUserId);
+    }
+    return users.map((user) => user.userId).filter((userId) => !keep.has(userId));
+}
+
+/** The local copy of users is a cache: whoever was dropped and still exists comes back when a room is read (`updateUsers`). A failure on one id is a warning. */
+export async function cleanupUsers(keepUserIds: string[]): Promise<void> {
+    const db = await openDB();
+    const toRemove = usersToRemove(await getAllThreads(), await listUsers(), keepUserIds);
+    for (const userId of toRemove) {
+        try {
+            await new Promise<void>((resolve, reject) => {
+                const tx = db.transaction("users", "readwrite");
+                tx.objectStore("users").delete(userId);
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject("Failed to delete user");
+                tx.onabort = () => reject("Transaction was aborted while deleting the user");
+            });
+        } catch (err) {
+            console.warn(`Could not remove user ${userId}:`, err);
+        }
+    }
+}
+
 export async function getUser(userId: string): Promise<msg.User | undefined> {
     const db = await openDB();
     const tx = db.transaction("users", "readonly");
