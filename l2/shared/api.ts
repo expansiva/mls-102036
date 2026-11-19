@@ -80,12 +80,51 @@ async function swapIdentity(oldId: string): Promise<string> {
 	return newId;
 }
 
+/** What the cm answers (409) for a room it does not hold: `Thread not found: <threadId>` (after `DomainError: ` on the client). */
+const THREAD_NOT_FOUND = /Thread not found: ([^\s,;]+)/;
+
+type ThreadNotFoundHandler = (threadId: string) => Promise<void> | void;
+
+let threadNotFoundHandler: ThreadNotFoundHandler | undefined;
+/** The rooms the handler already ran for: a room that keeps failing (every sync) does not run it again. */
+const threadsGone = new Set<string>();
+
+/** Registers the one handler that runs with the id of a room the cm does not know. Registering again replaces it; `undefined` removes it and forgets the rooms done. */
+export function setThreadNotFoundHandler(handler: ThreadNotFoundHandler | undefined): void {
+	threadNotFoundHandler = handler;
+	threadsGone.clear();
+}
+
+/** The room id inside a 409 `Thread not found: <id>`, from the message (not from the body of the request); nothing for any other error. */
+export function threadNotFoundId(error: unknown): string | undefined {
+	const failure = error as { statusCode?: number; message?: string } | undefined;
+	if (failure?.statusCode !== msg.HttpStatus.CONFLICT || typeof failure.message !== 'string') return undefined;
+	return threadNotFoundIdInMessage(failure.message);
+}
+
+/** The same, from a message alone: for a caller that only has the text (the error was wrapped into a new `Error`). */
+export function threadNotFoundIdInMessage(message: string | undefined): string | undefined {
+	return typeof message === 'string' ? THREAD_NOT_FOUND.exec(message)?.[1] : undefined;
+}
+
+/** Does not wait and does not repeat the request: the error goes up as it is. A failure of the handler is logged. */
+function reportThreadNotFound(error: unknown): void {
+	const threadId = threadNotFoundId(error);
+	if (!threadId || !threadNotFoundHandler || threadsGone.has(threadId)) return;
+	threadsGone.add(threadId);
+	const handler = threadNotFoundHandler;
+	void Promise.resolve()
+		.then(() => handler(threadId))
+		.catch((failure: unknown) => { console.error(`Could not drop the room ${threadId} the cm does not know`, failure); });
+}
+
 export async function post<T = msg.ResponseBase>(
 	args: msg.RequestBase
 ): Promise<T> {
 	try {
 		return await postOnce<T>(args);
 	} catch (error) {
+		reportThreadNotFound(error);
 		const sent = (args as { userId?: string }).userId;
 		if (!sent || !identityRefusedHandler || !isIdentityRefused(error)) throw error;
 		let newId: string;

@@ -61,6 +61,18 @@ export function openDB(): Promise<IDBDatabase> {
     });
 }
 
+/** Removes one room from the local database (its messages are removed by `deleteAllMessagesFromThread`). */
+export async function deleteThread(threadId: string): Promise<void> {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction("threads", "readwrite");
+        tx.objectStore("threads").delete(threadId);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject("Failed to delete thread");
+        tx.onabort = () => reject("Transaction was aborted while deleting the thread");
+    });
+}
+
 /** Empties every store of the local chat database (rooms, users, messages, tasks, poolings): what it holds belongs to the user who is gone. */
 export async function clearAllLocalData(): Promise<void> {
     const db = await openDB();
