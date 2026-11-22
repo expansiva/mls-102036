@@ -645,6 +645,94 @@ export interface ResponseE01Execution extends ResponseBase {
   execution: unknown;
 }
 
+export interface RequestGetAgentDetails extends RequestBase {
+  action: 'getAgentDetails';
+  userId: string;
+  threadId: string;
+  /** Id of the agent reply (`threadId/orderAt`). */
+  messageId: string;
+}
+
+/** One model call shown in Agent details. */
+export interface AgentDetailsLlmCall {
+  model: string;
+  inputTokens: number;
+  outputTokens: number;
+  reasoningTokens: number | null;
+  ms: number | null;
+  costUsd: number;
+}
+
+export interface AgentDetailsWebSearch {
+  /** Null when the turn trace did not record the decision. */
+  requested: boolean | null;
+  confidence: number | null;
+  /** Sentence appended to the prompt, when `requested` is known. */
+  sentence: string | null;
+}
+
+interface AgentDetailsGroupBase {
+  open: boolean;
+  /** False when this turn has nothing stored for the group. The panel shows "not recorded". */
+  recorded: boolean;
+}
+
+export interface AgentDetailsRequest extends AgentDetailsGroupBase {
+  id: 'request';
+  text?: string;
+  askedBy?: string;
+  at?: string;
+  threadId?: string;
+  agentUserId?: string;
+}
+
+export interface AgentDetailsExecution extends AgentDetailsGroupBase {
+  id: 'execution';
+  status?: string;
+  terminalReason?: string | null;
+  promptVersion?: string | null;
+  costUsd?: number | null;
+  llmCalls?: AgentDetailsLlmCall[];
+  llmTotals?: { inputTokens: number; outputTokens: number; reasoningTokens: number; ms: number | null; costUsd: number };
+  webSearch?: AgentDetailsWebSearch;
+  /** Present only while the execution is still running. Cancel stays on `cancelE01Execution`, owner only. */
+  cancel?: { executionId: string; ownerUserId: string };
+}
+
+export interface AgentDetailsContextSent extends AgentDetailsGroupBase {
+  id: 'contextSent';
+  sections?: Array<{ name: string; bytes: number }>;
+  historyIds?: string[];
+  omissions?: Array<{ kind: string; id: string; reason: string }>;
+  sources?: Array<{ kind: string; ref: string }>;
+  limits?: { maxOutputTokens: number; deadlineMs: number; maxCostUsd: number };
+  systemPrompt?: string;
+  envelope?: string;
+}
+
+export interface AgentDetailsTrace extends AgentDetailsGroupBase {
+  id: 'trace';
+  lines?: string[];
+}
+
+export interface AgentDetailsTaskStep extends AgentDetailsGroupBase {
+  id: 'taskStep';
+  /** Indented JSON of the task step that produced the reply. */
+  json?: string;
+}
+
+export interface AgentDetails {
+  request: AgentDetailsRequest;
+  execution: AgentDetailsExecution;
+  contextSent: AgentDetailsContextSent;
+  trace: AgentDetailsTrace;
+  taskStep: AgentDetailsTaskStep;
+}
+
+export interface ResponseAgentDetails extends ResponseBase {
+  details: AgentDetails;
+}
+
 export interface RequestGetMessagesAfter extends RequestBase {
   action: "getMessagesAfter";
   threadId: string;
