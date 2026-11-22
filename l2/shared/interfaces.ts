@@ -731,6 +731,8 @@ export interface AgentDetails {
 
 export interface ResponseAgentDetails extends ResponseBase {
   details: AgentDetails;
+  /** Build stamp of this cm, the same value `/msg/health` returns as `version`. */
+  cmVersion: string;
 }
 
 export interface RequestGetMessagesAfter extends RequestBase {
