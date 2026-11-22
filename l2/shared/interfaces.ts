@@ -681,9 +681,36 @@ export interface AgentDetailsRequest extends AgentDetailsGroupBase {
   id: 'request';
   text?: string;
   askedBy?: string;
+  /** Display name of `askedBy`. */
+  askedByName?: string;
+  /** Compact UTC of the person message (`yyyyMMddHHmmss`). */
   at?: string;
+  /** `at` as an ISO-8601 UTC instant. The panel formats it in the reader's language. */
+  atIso?: string;
   threadId?: string;
+  /** Display name of the room. */
+  threadName?: string;
   agentUserId?: string;
+  /** Display name of the agent. */
+  agentName?: string;
+}
+
+/** One step of the turn, in order. A public search step sends `webQuery` and does not send the envelope. */
+export interface AgentDetailsTurnStep {
+  index: number;
+  executionId: string;
+  status: string;
+  /** User message this step sent to the model. */
+  human: string;
+  /** False when this step is the public search: the envelope was not sent. */
+  envelopeSent: boolean;
+  envelope?: string;
+  systemPrompt?: string;
+  webQuery: string | null;
+  /** `web query safe` or `web query not safe`, when this step has one. */
+  webSafetyLine: string | null;
+  webSafetyConfidence: number | null;
+  llmCalls: AgentDetailsLlmCall[];
 }
 
 export interface AgentDetailsExecution extends AgentDetailsGroupBase {
@@ -695,6 +722,8 @@ export interface AgentDetailsExecution extends AgentDetailsGroupBase {
   llmCalls?: AgentDetailsLlmCall[];
   llmTotals?: { inputTokens: number; outputTokens: number; reasoningTokens: number; ms: number | null; costUsd: number };
   webSearch?: AgentDetailsWebSearch;
+  /** Every step of the turn, parent first. */
+  steps?: AgentDetailsTurnStep[];
   /** Present only while the execution is still running. Cancel stays on `cancelE01Execution`, owner only. */
   cancel?: { executionId: string; ownerUserId: string };
 }
@@ -708,6 +737,8 @@ export interface AgentDetailsContextSent extends AgentDetailsGroupBase {
   limits?: { maxOutputTokens: number; deadlineMs: number; maxCostUsd: number };
   systemPrompt?: string;
   envelope?: string;
+  /** Every step of the turn. On a search step, `envelopeSent` is false and `human` is the query. */
+  steps?: AgentDetailsTurnStep[];
 }
 
 export interface AgentDetailsTrace extends AgentDetailsGroupBase {
