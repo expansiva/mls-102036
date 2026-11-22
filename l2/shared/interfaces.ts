@@ -695,17 +695,36 @@ export interface AgentDetailsRequest extends AgentDetailsGroupBase {
   agentName?: string;
 }
 
+/** The agent reply for this turn: text, final status, and the totals of every step. */
+export interface AgentDetailsResponse extends AgentDetailsGroupBase {
+  id: 'response';
+  /** Text of the agent message. */
+  text?: string;
+  /** Status of the last step. */
+  status?: string;
+  /** Sum of every step's cost. */
+  costUsd?: number;
+  /** Seconds from the request instant to the reply instant. */
+  seconds?: number;
+  /** How many steps the turn ran. */
+  steps?: number;
+  /** How many model calls the turn made. */
+  llmCalls?: number;
+}
+
 /** One step of the turn, in order. A public search step sends `webQuery` and does not send the envelope. */
 export interface AgentDetailsTurnStep {
   index: number;
   executionId: string;
   status: string;
   /** User message this step sent to the model. */
-  human: string;
+  userMessage: string;
   /** False when this step is the public search: the envelope was not sent. */
   envelopeSent: boolean;
-  envelope?: string;
+  /** Full prompt, present only on the first step of the turn. */
   systemPrompt?: string;
+  /** The end of this step's prompt that differs from the turn prompt. Empty when it is the same. */
+  promptTail: string;
   webQuery: string | null;
   /** `web query safe` or `web query not safe`, when this step has one. */
   webSafetyLine: string | null;
@@ -735,10 +754,6 @@ export interface AgentDetailsContextSent extends AgentDetailsGroupBase {
   omissions?: Array<{ kind: string; id: string; reason: string }>;
   sources?: Array<{ kind: string; ref: string }>;
   limits?: { maxOutputTokens: number; deadlineMs: number; maxCostUsd: number };
-  systemPrompt?: string;
-  envelope?: string;
-  /** Every step of the turn. On a search step, `envelopeSent` is false and `human` is the query. */
-  steps?: AgentDetailsTurnStep[];
 }
 
 export interface AgentDetailsTrace extends AgentDetailsGroupBase {
@@ -754,6 +769,7 @@ export interface AgentDetailsTaskStep extends AgentDetailsGroupBase {
 
 export interface AgentDetails {
   request: AgentDetailsRequest;
+  response: AgentDetailsResponse;
   execution: AgentDetailsExecution;
   contextSent: AgentDetailsContextSent;
   trace: AgentDetailsTrace;
