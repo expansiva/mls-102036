@@ -1203,6 +1203,8 @@ export interface Thread {
   channelOrigin?: ChannelOrigin;
   /** Who the person of a channel room is, from the moment `since`. Absent means anonymous. */
   channelIdentity?: ChannelRoomIdentity;
+  /** Last ask for the module to block this room. The module blocks and unblocks; the cm only records the ask. */
+  channelDisableRequested?: { reason: string; at: string };
   kind?: 'thread' | 'task-room';
   taskRoom?: {
     taskId: string;
