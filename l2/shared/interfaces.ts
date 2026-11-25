@@ -1130,6 +1130,15 @@ export interface ChannelOrigin {
   agentId: string;
 }
 
+/** Person of one channel room: an employee by email, or an external client by mdmId. */
+export type ChannelRoomIdentity = {
+  displayName: string;
+  /** ISO 8601 with a fraction of a second. */
+  since: string;
+  byAgentId: string;
+  how: string;
+} & ({ email: string } | { mdmId: string });
+
 export interface UserMetadata {
   source?: "collab" | "openclaw" | "external";
   agentType?: "pma" | "agent" | "external_agent" | "module";
@@ -1192,6 +1201,8 @@ export interface Thread {
   };
   pinnedMessages?: PinnedMessage[];
   channelOrigin?: ChannelOrigin;
+  /** Who the person of a channel room is, from the moment `since`. Absent means anonymous. */
+  channelIdentity?: ChannelRoomIdentity;
   kind?: 'thread' | 'task-room';
   taskRoom?: {
     taskId: string;
