@@ -1114,7 +1114,19 @@ export interface UserNotifications {
   subscription: PushSubscriptionData;
 }
 
-export type UserKind = "human" | "synthetic_agent" | "pma";
+export type UserKind = "human" | "synthetic_agent" | "pma" | "channel_contact";
+
+export type ChannelConversationKind = "person" | "group";
+
+/** Origin of one channel conversation: the app and module come from the platform stamp, never from the body. */
+export interface ChannelOrigin {
+  appId: string;
+  moduleId: string;
+  conversationRef: string;
+  audience: CmAgentAudience;
+  conversationKind: ChannelConversationKind;
+  agentId: string;
+}
 
 export interface UserMetadata {
   source?: "collab" | "openclaw" | "external";
@@ -1177,6 +1189,7 @@ export interface Thread {
     protectedAt: string;
   };
   pinnedMessages?: PinnedMessage[];
+  channelOrigin?: ChannelOrigin;
   kind?: 'thread' | 'task-room';
   taskRoom?: {
     taskId: string;
