@@ -2445,6 +2445,29 @@ export interface CmChannelMessageReceivedOutput {
   threadId: string;
   messageRef: string;
 }
+
+/** The cm asks the channel module to send a text. A refusal is the error `refused`. Mirror of the runtime contract. */
+export interface CmSendChannelMessageInput {
+  to: { conversationRef: string } | { address: string; botRef: string };
+  text: string;
+}
+export interface CmSendChannelMessageOutput {
+  channelMessageId: string;
+}
+
+/** The cm tells the channel module who the person of a conversation is; no `identity` clears it. */
+export interface CmSetChannelConversationIdentityInput {
+  conversationRef: string;
+  identity?: { email: string } | { mdmId: string };
+  displayName?: string;
+  since?: string;
+}
+
+/** The cm asks to block a conversation or to pause a bot of the channel. */
+export interface CmDisableChannelInput {
+  target: { conversationRef: string } | { botRef: string };
+  reason: string;
+}
 export type CmDraftStatus = 'preparing' | 'ready' | 'refused';
 
 /** What a company can adjust; `key` is a dotted name of the override of the configuration of the cm, `label` is in the language of the answer. */
