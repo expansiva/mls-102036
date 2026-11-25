@@ -1513,6 +1513,13 @@ export interface Message {
     expiresAt: string;
     answered?: boolean;
   };
+  /** Origin of a message that arrived from a channel module. Later used to skip the echo. */
+  channel?: {
+    appId: string;
+    moduleId: string;
+    conversationRef: string;
+    writtenAt: string;
+  };
 }
 
 export type MessageAttachmentKind = 'image' | 'video' | 'audio' | 'document' | 'file';
@@ -2424,6 +2431,20 @@ export interface CmTool {
 }
 
 export type CmAgentAudience = 'member' | 'room' | 'external';
+
+/** A text a person wrote in a conversation of a channel, delivered to the cm. Mirror of the runtime contract of the connection `cm`; the agent is in `context.agentId`. */
+export interface CmChannelMessageReceivedInput {
+  conversationRef: string;
+  audience: CmAgentAudience;
+  conversationKind: 'person' | 'group';
+  author: { channelAccountId: string; name: string };
+  writtenAt: string;
+  text: string;
+}
+export interface CmChannelMessageReceivedOutput {
+  threadId: string;
+  messageRef: string;
+}
 export type CmDraftStatus = 'preparing' | 'ready' | 'refused';
 
 /** What a company can adjust; `key` is a dotted name of the override of the configuration of the cm, `label` is in the language of the answer. */
