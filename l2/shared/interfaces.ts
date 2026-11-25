@@ -2450,6 +2450,10 @@ export interface CmChannelMessageReceivedOutput {
 export interface CmSendChannelMessageInput {
   to: { conversationRef: string } | { address: string; botRef: string };
   text: string;
+  /** When the cm stored the message, ISO 8601 with a fraction of second; the same on every resend. */
+  writtenAt: string;
+  /** The id of the message in the cm. Provisional name until the runtime fixes it. */
+  messageRef: string;
 }
 export interface CmSendChannelMessageOutput {
   channelMessageId: string;
