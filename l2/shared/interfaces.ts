@@ -1120,6 +1120,8 @@ export type ChannelConversationKind = "person" | "group";
 
 /** Origin of one channel conversation: the app and module come from the platform stamp, never from the body. */
 export interface ChannelOrigin {
+  /** The organization at arrival: a reply written by the worker has no organization in its request. */
+  organizationId: string;
   appId: string;
   moduleId: string;
   conversationRef: string;
