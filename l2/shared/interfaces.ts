@@ -2461,6 +2461,19 @@ export interface CmChannelMessageReceivedOutput {
   messageRef: string;
 }
 
+/** A module asks the cm to tell a person something. A refusal is the error `refused`. Mirror of the runtime contract. */
+export interface CmNotifyPersonInput {
+  /** How to reach the person (e-mail, phone, handle of a channel). */
+  contact: string;
+  /** The person in the mdm, when the module knows it. */
+  mdmId?: string;
+  text: string;
+}
+export interface CmNotifyPersonOutput {
+  /** `no_channel`: the cm found no channel to reach the person. */
+  status: 'sent' | 'no_channel';
+}
+
 /** The cm asks the channel module to send a text. A refusal is the error `refused`. Mirror of the runtime contract. */
 export interface CmSendChannelMessageInput {
   to: { conversationRef: string } | { address: string; botRef: string };
